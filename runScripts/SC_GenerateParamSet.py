@@ -9,20 +9,9 @@ def genParSet(n,inputFile,testDir,numFiles):
    import sys
    import os
 
-   # parameter set settings
-   #n=1000 # how many parameter set yous want.
-   #testFldName = 'test2'
    ###################################
    ##     CREATE PARAMETER SETS     ##
    ###################################
-
-   # Libraries and stuff
-
-   ##### Read in Key Table ####
-   # file directories
-   # currently just expecting these files to be in the same folder, will udpate later.
-   #fileDir='/Users/lt/Dropbox/Colorado School of Mines/PHD/SJBM/05_ScalingTests/'
-   #testDir='/Volumes/LTBackup/AutoSCTest/'
 
    # load csv file of keys and values
    inputVarDF=pd.read_csv(inputFile, delimiter=',')
@@ -31,7 +20,7 @@ def genParSet(n,inputFile,testDir,numFiles):
    ##### Variable Variables ####
    # evaluate variable variables
    varVars = inputVarDF[inputVarDF['set'] == 'Variable']
-   varNames = np.unique(varVars['SCValue'])
+   varNames = np.unique(varVars['SCValue']) # some variables may be set together, so read unique names
 
    # create parameter data sets
    parDataSets={'n': list(range(0,n))}
@@ -42,7 +31,7 @@ def genParSet(n,inputFile,testDir,numFiles):
    for var in varNames:
       print(var)
       varIdx = varVars[varVars['SCValue']==var]
-      if varIdx['inputType'].iat[0] =='double':
+      if varIdx['inputType'].iat[0] =='double': 
          varmin = int(float(varIdx['MinRange'].iat[0])*1000*n)
          varmax = int(float(varIdx['MaxRange'].iat[0])*1000*n)
          varValues = np.array(random.sample(range(varmin,varmax),n))/(1000*n)
@@ -66,7 +55,7 @@ def genParSet(n,inputFile,testDir,numFiles):
    constantKeys = constantVars['KeyName']
 
    for key in constantKeys:
-      print(key)
+      #print(key)
       keyRow = constantVars[constantVars['KeyName']==key]
       keyValue = keyRow['SCValue'].iat[0]
       parDF[key] = [keyValue] * n
@@ -74,52 +63,85 @@ def genParSet(n,inputFile,testDir,numFiles):
 
    ##### Calculate Variables ####
    # calculate variables
-   #calcVars = inputVarDF[inputVarDF['set'] == 'Calculate']
-
+   calcVars = inputVarDF[inputVarDF['set'] == 'Calculate']
 
    ##### Irrigation Variables ####
-   # randomly generate volumes, durrations, and timings
-   irrVols = [2.5,5,10]
-   irrDurrs = [1,2.5,5,10]
-   irrTiming = ['morn','day','eve','night']
+   if 'Solver.CLM.IrrigationStartTime' in inputVarDF.KeyName.values:
+      # randomly generate volumes, durrations, and timings
+      irrVols = [2.5,5,10]
+      irrDurrs = [1,2.5,5,10]
+      irrTiming = ['morn','day','eve','night']
 
-   irrVolValues = np.array(random.choices(irrVols,k=n))
-   irrDurrValues = np.array(random.choices(irrDurrs,k=n))
-   irrTimingValues = np.array(random.choices(irrTiming,k=n))
+      irrVolValues = np.array(random.choices(irrVols,k=n))
+      irrDurrValues = np.array(random.choices(irrDurrs,k=n))
+      irrTimingValues = np.array(random.choices(irrTiming,k=n))
 
-   # convert to irrigation start and stop times
-   irrTimingDF = pd.read_csv('SC_IrrigationTiming_20200813.csv')
-   irrStart = []
-   irrEnd = []
+      # convert to irrigation start and stop times
+      irrTimingDF = pd.read_csv('SC_IrrigationTiming_20200813.csv')
+      irrStart = []
+      irrEnd = []
 
-   for i in range(len(irrDurrValues)):
-      dfsub = irrTimingDF[(irrTimingDF['durration'] == irrDurrValues[i]) & (irrTimingDF['timing'] == irrTimingValues[i])] 
-      irrStart.append(dfsub['start'].iloc[0])
-      irrEnd.append(dfsub['end'].iloc[0])
+      for i in range(len(irrDurrValues)):
+         dfsub = irrTimingDF[(irrTimingDF['durration'] == irrDurrValues[i]) & (irrTimingDF['timing'] == irrTimingValues[i])] 
+         irrStart.append(dfsub['start'].iloc[0])
+         irrEnd.append(dfsub['end'].iloc[0])
 
-   parDF['Solver.CLM.IrrigationStartTime'] = irrStart
-   parDF['Solver.CLM.IrrigationStopTime'] = irrEnd
-   irrRate = irrVolValues/irrDurrValues/3600
-   parDF['Solver.CLM.IrrigationRate'] = irrRate
-
-   # irrigation stop time
-   #irrTime <- sample(1:12,n)
-   #irrRange = [format(x, '01d') for x in range(0,12)]
-   #irrTimeValues = np.array(random.choices(irrRange,k=n))
-   #irrTimeValues = irrTimeValues.astype(int)
-   #irrStopTime = parDF['Solver.CLM.IrrigationStartTime'] + irrTimeValues
-   #irrStopTime[irrStopTime>24] = 24
-   #parDF['Solver.CLM.IrrigationStopTime'] = irrStopTime
-
+      parDF['Solver.CLM.IrrigationStartTime'] = irrStart
+      parDF['Solver.CLM.IrrigationStopTime'] = irrEnd
+      irrRate = irrVolValues/irrDurrValues/3600
+      parDF['Solver.CLM.IrrigationRate'] = irrRate
+   
    # make sure clm soil layer not greater than the number of layers
-   clmLayDif = parDF['Solver.CLM.SoiLayer'] - parDF['Solver.CLM.RootZoneNZ'] #check difference between soilLayer and RootZoneNZ 
-   #parDF['Solver.CLM.SoiLayer'][clmLayDif > 0] = parDF['Solver.CLM.RootZoneNZ'][clmLayDif > 0] # if soilLayer > RootZoneNZ then replace with the RootZoneNZ
-   parDF['Solver.CLM.SoiLayer'] = [parDF['Solver.CLM.SoiLayer'][i] if clmLayDif[i] < 0 else parDF['Solver.CLM.RootZoneNZ'][i] for i in range(len(parDF))]
+   # first check if these variables exist
+   if (('Solver.CLM.SoiLayer' in inputVarDF.KeyName.values) & ('Solver.CLM.RootZoneNZ' in inputVarDF.KeyName.values)):
+      clmLayDif = parDF['Solver.CLM.SoiLayer'] - parDF['Solver.CLM.RootZoneNZ'] #check difference between soilLayer and RootZoneNZ 
+      #parDF['Solver.CLM.SoiLayer'][clmLayDif > 0] = parDF['Solver.CLM.RootZoneNZ'][clmLayDif > 0] # if soilLayer > RootZoneNZ then replace with the RootZoneNZ
+      parDF['Solver.CLM.SoiLayer'] = [parDF['Solver.CLM.SoiLayer'][i] if clmLayDif[i] < 0 else parDF['Solver.CLM.RootZoneNZ'][i] for i in range(len(parDF))]
 
-   # computational grid
-   parDF['Geom.domain.Upper.X'] = parDF['ComputationalGrid.NX'].astype(float) * parDF['ComputationalGrid.DX'].astype(float)
-   parDF['Geom.domain.Upper.Y'] = parDF['ComputationalGrid.NY'].astype(float) * parDF['ComputationalGrid.DY'].astype(float)
-   parDF['Geom.domain.Upper.Z'] = parDF['ComputationalGrid.NZ'].astype(float) * parDF['ComputationalGrid.DZ'].astype(float)
+   # calculate variables
+   for i in range(len(calcVars)):
+      currRow = calcVars.iloc[i,:]
+      allargs = currRow.SCValue.split(" ")
+      op = allargs[0]
+      firstArg = allargs[1]
+
+      # check if first argument is a string or a number
+      try:
+         firstValue = int(firstArg)
+         parValue = pd.Series(np.repeat(firstValue,n))
+      except:
+         parValue = parDF[firstArg]
+
+         # check variable type & convert
+         vartype = inputVarDF[inputVarDF['KeyName']==firstArg].inputType
+         if vartype.iat[0] == 'double':
+            parValue = parValue.astype('float')
+
+         else:
+            parValue = parValue.astype('int')
+
+
+      for j in range(len(allargs)-2):
+          currarg = allargs[j + 2]
+         
+          currValue = parDF[currarg]
+
+          # check variable type & convert
+          vartype = inputVarDF[inputVarDF['KeyName']==currarg].inputType
+          if vartype.iat[0] == 'double':
+              currValue = currValue.astype('float')
+          else:
+              currValue = currValue.astype('int')
+
+          if op == 'divide':
+              parValue = parValue.divide(currValue)
+          elif op == 'multiply':
+              parValue = parValue.multiply(currValue)
+          elif op == 'add':
+              parValue = parValue.add(currValue)
+          elif op == 'subtract':
+              parValue = parValue.subtract(currValue)
+      parDF[currRow.KeyName] = parValue 
 
    # create new test directory
    os.system('mkdir ' + testDir)
