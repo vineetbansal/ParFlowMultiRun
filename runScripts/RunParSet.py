@@ -73,7 +73,7 @@ def createPumpFile(pumpVRate, pumpDepth_min, pumpDepth_max, dz, nz):
     nlayers = pumpData.sum()
     pumpDepth = nlayers*dz
     assert pumpDepth == (pumpDepth_max - pumpDepth_min) #sanity check
-    pumpRate = pumpVol/1.12/1.12/pumpDepth # number of layers does not matter here, only the total depth, because the rate is 1/hr 
+    pumpRate = pumpVRate/1.12/1.12/pumpDepth # number of layers does not matter here, only the total depth, because the rate is 1/hr 
     pumpData = pumpData * pumpRate
 
     # save the file
@@ -114,38 +114,52 @@ def getAllInputRows(paramFile): # gets all input rows
     #linePar = allPar.iloc[n]
     return allPar
 
-def processDataSC(clmlay,nlay,n,runLen):
+def processDataSC(rpars):
     '''process parflow output data'''
+    n = rpars['n']
+    nz = rpars['ComputationalGrid.NZ']
+    runLen = rpars['TimingInfo.StopTime']
+
+    # check if clm is being used, currently it's assum
+    try:
+        LSM = rpars['Solver.LSM'] == 'CLM'
+    except:
+        LSM = False
 
     # set variable names for parflow output files
-    clmLayers = list(np.arange(1,clmlay+1)) # list of all soil layers
-    allLayers = list(np.arange(1,nlay+1)) # list of all soil layers
-    clm_colnames =  ['eflx_lh_tot','eflx_lwrad_out','eflx_sh_tot',
-                           'eflx_soil_grnd','qflx_evap_tot','qflx_evap_grnd',
-                           'qflx_evap_soi','qflx_evap_veg','qflx_trans_veg',
-                           'qflx_infl','swe_out','t_grnd','qflx_qirr']
-    clm_colnames.extend(['tsoil_' + str(l) for l in clmLayers]) # adds a soil temperature list
+    allLayers = list(np.arange(1,nz+1)) # list of all soil layers
     sat_colnames = ['sat_' + str(l) for l in allLayers]
     pres_colnames = ['press_' + str(l) for l in allLayers]
+
+    if LSM:
+        clmLayers = list(np.arange(1,rpars['Solver.CLM.RootZoneNZ']+1)) # list of all soil layers
+        clm_colnames =  ['eflx_lh_tot','eflx_lwrad_out','eflx_sh_tot',
+                            'eflx_soil_grnd','qflx_evap_tot','qflx_evap_grnd',
+                            'qflx_evap_soi','qflx_evap_veg','qflx_trans_veg',
+                            'qflx_infl','swe_out','t_grnd','qflx_qirr']
+        clm_colnames.extend(['tsoil_' + str(l) for l in clmLayers]) # adds a soil temperature list
 
     # Loop through all files, combine all variables
     for k in range(1,(runLen+1)):
         #print(str(k))
 
         # set file names based on hour
-        finCLM="test.out.clm_output.{:05d}.C.pfb".format(k)
         finSAT="test.out.satur.{:05d}.pfb".format(k)
         finPRES="test.out.press.{:05d}.pfb".format(k)
 
         # pull in the data, note this only works because it's a single cell model, if it were a 3-D model, would need a different method here, variables would need to be averaged or...
-        dataCLMpf = pfio.pfread(finCLM)
-        dataCLMDF = pd.DataFrame(np.transpose(dataCLMpf[:,:,0]),columns=clm_colnames)
         dataSATpf = pfio.pfread(finSAT)
         dataSATDF = pd.DataFrame(np.transpose(dataSATpf[:,:,0]),columns=sat_colnames)
         dataPRESpf = pfio.pfread(finPRES)
         dataPRESDF = pd.DataFrame(np.transpose(dataPRESpf[:,:,0]),columns=pres_colnames)
 
-        hourDat = pd.concat([dataCLMDF,dataSATDF,dataPRESDF], axis=1) # merge the datasets
+        if LSM:
+            finCLM="test.out.clm_output.{:05d}.C.pfb".format(k)
+            dataCLMpf = pfio.pfread(finCLM)
+            dataCLMDF = pd.DataFrame(np.transpose(dataCLMpf[:,:,0]),columns=clm_colnames)
+            hourDat = pd.concat([dataCLMDF,dataSATDF,dataPRESDF], axis=1) # merge the datasets
+        else:
+            hourDat = pd.concat([dataSATDF,dataPRESDF], axis=1) # merge the datasets
 
         if k==1:
             allData = hourDat
@@ -155,72 +169,107 @@ def processDataSC(clmlay,nlay,n,runLen):
     # add a datetime to the data
 
 
+    # calculate storage
+    # storage is dx*dy*dz*press*Ss*Sat + Sat*porosity
+    dx = rpars['ComputationalGrid.DX']
+    dy = rpars['ComputationalGrid.DY']
+    dz = rpars['ComputationalGrid.DY']
+    por = rpars['Geom.domain.Porosity.Value']
+    ss = rpars['Geom.domain.SpecificStorage.Value']
+    sto_colnames = ['sto_' + str(l) for l in allLayers]
+
+    for i in range(nz):
+        sat = allData[sat_colnames[i]]
+        pres = allData[pres_colnames[i]]
+        sto =  pres.multiply(sat) * dx * dy * dz * ss + sat * por * dx * dy * dz
+        allData[sto_colnames[i]] = sto
+
+    # total storage over time
+    
 
     # save all data
     fileOut = '../FullRunData/FullRunData_test' + str(n) + ".csv"
     #fileOut = 'FullRunData/FullRunData_test' + str(n) + ".csv"
     allData.to_csv(fileOut,index=False) 
 
-    fluxVars = ['qflx_evap_tot','qflx_evap_grnd',
-                 'qflx_evap_soi','qflx_evap_veg','qflx_trans_veg',
-                 'qflx_infl','qflx_qirr']
-    fluxData = allData[fluxVars] #%>% summarise_all(sum)
-    fluxTots = fluxData.agg(['sum'])
-    fluxTots.columns = ['Total_m_' + str(s) for s in fluxTots.columns]
 
-    sweData = allData[['swe_out']]
-    sweTots = sweData.agg(['mean'])
-    sweTots.columns = ['Mean_m_' + str(s) for s in sweTots.columns]
+    if LSM:
+        fluxVars = ['qflx_evap_tot','qflx_evap_grnd',
+                    'qflx_evap_soi','qflx_evap_veg','qflx_trans_veg',
+                    'qflx_infl','qflx_qirr']
+        fluxData = allData[fluxVars] #%>% summarise_all(sum)
+        fluxTots = fluxData.agg(['sum'])
+        fluxTots.columns = ['Total_m_' + str(s) for s in fluxTots.columns]
 
-    tempVars = ['t_grnd']
-    tempVars.extend(['tsoil_' + str(l) for l in clmLayers])
-    tempData = allData[tempVars]
-    tempTots = tempData.agg(['mean'])
-    tempTots.columns = ['Mean_' + s for s in tempTots.columns]
+        sweData = allData[['swe_out']]
+        sweTots = sweData.agg(['mean'])
+        sweTots.columns = ['Mean_m_' + str(s) for s in sweTots.columns]
 
-    chngSData = allData[sat_colnames]
-    initialSAT = chngSData.iloc[0]
-    finalSAT = chngSData.iloc[len(chngSData)-1]
-    diffSAT = finalSAT.subtract(initialSAT)
-    chngSTots = pd.DataFrame(diffSAT).transpose()
-    chngSTots.columns = ['Chng_' + s for s in chngSTots.columns]
-
-    chngPData = allData[pres_colnames]
-    initialPRES = chngPData.iloc[0]
-    finalPRES = chngPData.iloc[len(chngPData)-1]
-    diffPRES = finalPRES.subtract(initialPRES)
-    chngPTots = pd.DataFrame(diffPRES).transpose()
-    chngPTots.columns = ['Chng_' + s for s in chngPTots.columns]
-
-    if clmlay < 10 or nlay < 1000:
-        blankDatSat = np.empty((1,(1000 - nlay)))
-        blankDatSat[:] = np.NaN
-        blankDatTemp = np.empty((1,(10 - clmlay)))
-        blankDatTemp[:] = np.NaN
-
-        blankSATDF = pd.DataFrame(blankDatSat)
-        blankPRESDF = blankSATDF
-        blankSATDF.columns = [ 'Chng_sat_' + str(l) for l in list(np.arange(nlay+1,1001))]
-        blankPRESDF.columns = [ 'Chng_press_' + str(l) for l in list(np.arange(nlay+1,1001))]
-        blankTempDF = pd.DataFrame(blankDatTemp)
-        blankTempDF.columns = [ 'Mean_' + str(l) for l in list(np.arange(clmlay+1,11))]
-
-        # add it to dataframes
-        tempTots = pd.concat([tempTots,blankTempDF], axis=1)
-        chngPTots = pd.concat([chngPTots,blankPRESDF], axis=1)
-        chngSTots = pd.concat([chngSTots,blankSATDF], axis=1)
-
+        tempVars = ['t_grnd']
+        tempVars.extend(['tsoil_' + str(l) for l in clmLayers])
+        tempData = allData[tempVars]
+        tempTots = tempData.agg(['mean'])
+        tempTots.columns = ['Mean_' + s for s in tempTots.columns]
     
-    fluxTots=fluxTots.reset_index(drop=True)
-    sweTots=sweTots.reset_index(drop=True)    
-    tempTots=tempTots.reset_index(drop=True)
-    chngPTots=chngPTots.reset_index(drop=True)
-    chngSTots=chngSTots.reset_index(drop=True)    
+    chngStoData = allData[sto_colnames]
+    initSto = chngStoData.iloc[0]
+    finalSto = chngStoData.iloc[-1]
+    diffSto = finalSto.subtract(initSto)
+    chngStoTots = pd.DataFrame(diffSto).transpose()
+    chngStoTots.columns = ['Chng_' + s for s in chngStoTots.columns] 
+
+
+
+    #chngSData = allData[sat_colnames]
+    #initialSAT = chngSData.iloc[0]
+    #finalSAT = chngSData.iloc[len(chngSData)-1]
+    #diffSAT = finalSAT.subtract(initialSAT)
+    #chngSTots = pd.DataFrame(diffSAT).transpose()
+    #chngSTots.columns = ['Chng_' + s for s in chngSTots.columns]
+
+    #chngPData = allData[pres_colnames]
+    #initialPRES = chngPData.iloc[0]
+    #finalPRES = chngPData.iloc[len(chngPData)-1]
+    #diffPRES = finalPRES.subtract(initialPRES)
+    #chngPTots = pd.DataFrame(diffPRES).transpose()
+    #chngPTots.columns = ['Chng_' + s for s in chngPTots.columns]
+
+
+    # if clmlay < 10 or nlay < 1000:
+    #     blankDatSat = np.empty((1,(1000 - nlay)))
+    #     blankDatSat[:] = np.NaN
+    #     blankDatTemp = np.empty((1,(10 - clmlay)))
+    #     blankDatTemp[:] = np.NaN
+
+    #     blankSATDF = pd.DataFrame(blankDatSat)
+    #     blankPRESDF = blankSATDF
+    #     blankSATDF.columns = [ 'Chng_sat_' + str(l) for l in list(np.arange(nlay+1,1001))]
+    #     blankPRESDF.columns = [ 'Chng_press_' + str(l) for l in list(np.arange(nlay+1,1001))]
+    #     blankTempDF = pd.DataFrame(blankDatTemp)
+    #     blankTempDF.columns = [ 'Mean_' + str(l) for l in list(np.arange(clmlay+1,11))]
+
+    #     # add it to dataframes
+    #     tempTots = pd.concat([tempTots,blankTempDF], axis=1)
+    #     chngPTots = pd.concat([chngPTots,blankPRESDF], axis=1)
+    #     chngSTots = pd.concat([chngSTots,blankSATDF], axis=1)
+
+    # merge data frames
+    chngStoTots=chngStoTots.reset_index(drop=True)
+
+    if LSM:
+        fluxTots=fluxTots.reset_index(drop=True)
+        sweTots=sweTots.reset_index(drop=True)    
+        tempTots=tempTots.reset_index(drop=True)
+        singleLineOut = pd.concat([fluxTots,sweTots,tempTots,chngStoTots], axis=1) # merge the datasets
+    else:
+        singleLineOut = chngStoTots
+    #chngPTots=chngPTots.reset_index(drop=True)
+    #chngSTots=chngSTots.reset_index(drop=True)    
     #merge1 = pd.concat([fluxTots,sweTots],axis=1,ignore_index = True)
     #merge2 = pd.concat([merge1,tempTots],axis=1,ignore_index = True)
     #merge3 = pd.concat([merge2,chngPTots],axis=1,ignore_index = True)
     #singleLineOut = pd.concat([merge2,chngSTots],axis=1,ignore_index = True)
-    singleLineOut = pd.concat([fluxTots,sweTots,tempTots,chngPTots,chngSTots], axis=1) # merge the datasets
+    
     fileOut = '../SingleLineOutput/SingleLineOutput_test' + str(n) + ".csv"
     singleLineOut.to_csv(fileOut,index=False)
    
@@ -242,11 +291,11 @@ def runSet(parLine, parameterFN):
     os.system("$PARFLOW_DIR/bin/parflow test > parflow.test.log")
 
     # process the data
-    nclm = runParameters['Solver.CLM.RootZoneNZ']
-    totalLayers = runParameters['ComputationalGrid.NZ']
-    testn = runParameters['n']
-    runLen = runParameters['TimingInfo.StopTime']
-    processDataSC(nclm,totalLayers,testn,runLen)
+    #nclm = runParameters['Solver.CLM.RootZoneNZ']
+    #totalLayers = runParameters['ComputationalGrid.NZ']
+    #testn = runParameters['n']
+    #runLen = runParameters['TimingInfo.StopTime']
+    processDataSC(runParameters)
 
     os.system('rm test.pfidb')
 
@@ -300,10 +349,10 @@ def runSingleFolder(runset): # this is for running in parallel w/ a set number o
         #print('Parflow Run Done')
 
         # process the data
-        nclm = runParameters['Solver.CLM.RootZoneNZ']
-        totalLayers = runParameters['ComputationalGrid.NZ']
-        runLen = runParameters['TimingInfo.StopTime']
-        processDataSC(nclm,totalLayers,testn,runLen)
+        #nclm = runParameters['Solver.CLM.RootZoneNZ']
+        #totalLayers = runParameters['ComputationalGrid.NZ']
+        #runLen = runParameters['TimingInfo.StopTime']
+        processDataSC(runParameters)
         #print('Processing Complete')
         #print('Deleting old pfidb file')
         os.system('rm test.pfidb')
