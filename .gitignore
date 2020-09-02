@@ -1,2 +1,8 @@
 runScripts/test.py
+runScripts/test2.py
 runScripts/currtest
+runScripts/__pycache__
+runScripts/build
+runScripts/dist
+runScripts/RunParSet.spec
+

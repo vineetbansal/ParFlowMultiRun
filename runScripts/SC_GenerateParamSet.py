@@ -148,6 +148,7 @@ def genParSet(n,inputFile,testDir,numFiles):
    os.system('mkdir ' + testDir + '/FullRunData')
    os.system('mkdir ' + testDir + '/SingleLineOutput')
    os.system('mkdir ' + testDir + '/RunTimeData')
+   os.system('mkdir ' + testDir + '/TotalStorageData')
    os.system('cp -r clm_input/ ' + testDir)
 
    # write out parameter data set variables to number of files

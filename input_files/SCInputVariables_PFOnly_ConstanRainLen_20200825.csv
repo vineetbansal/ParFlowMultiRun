@@ -1,14 +1,14 @@
 ﻿KeyName,SCValue,input type,set,MinRange,MaxRange
 BCPressure.PatchNames,x-lower x-upper y-lower y-upper z-lower z-upper,list/string,Constant,NA,NA
-ComputationalGrid.DX,[dxdy],double,Variable,1,1000
-ComputationalGrid.DY,[dxdy],double,Variable,1,1000
-ComputationalGrid.DZ,divide 100 ComputationalGrid.NZ,double,Calculate,0.01,1
+ComputationalGrid.DX,[dxdy],list,Variable,1 10 25 50 75 100 250 500 1000, NA
+ComputationalGrid.DY,[dxdy],double,Variable,1 10 25 50 75 100 250 500 1000, NA
+ComputationalGrid.DZ,divide 10 ComputationalGrid.NZ,double,Calculate,NA,NA
 ComputationalGrid.Lower.X,0,double,Constant,NA,NA
 ComputationalGrid.Lower.Y,0,double,Constant,NA,NA
 ComputationalGrid.Lower.Z,0,double,Constant,NA,NA
 ComputationalGrid.NX,1,integer,Constant,NA,NA
 ComputationalGrid.NY,1,integer,Constant,NA,NA
-ComputationalGrid.NZ,[nz],integer,Variable,5,1000
+ComputationalGrid.NZ,[nz],list,Variable,5 10 20 30 40 50 60 70 80 90 100,NA
 Contaminants.Names,,string,Constant,NA,NA
 Cycle.constant.alltime.Length,1,integer,Constant,NA,NA
 Cycle.constant.Repeat,-1,integer,Constant,NA,NA
@@ -23,7 +23,7 @@ Domain.GeomName,domain,string,Constant,NA,NA
 FileVersion,4,integer,Constant,NA,NA
 Geom.domain.ICPressure.RefGeom,domain,string,Constant,NA,NA
 Geom.domain.ICPressure.RefPatch,z-lower,string,Constant,NA,NA
-Geom.domain.ICPressure.Value,[ip],double,Variable,0,10
+Geom.domain.ICPressure.Value,[gw],list,Variable,0 1 2.5 5 7.5 9 10, NA
 Geom.domain.Lower.X,0,double,Constant,NA,NA
 Geom.domain.Lower.Y,0,double,Constant,NA,NA
 Geom.domain.Lower.Z,0,double,Constant,NA,NA
@@ -58,22 +58,22 @@ KnownSolution,NoKnownSolution,string,Constant,NA,NA
 Mannings.Geom.domain.Value,[man],double,Variable,0.0000001,0.1
 Mannings.GeomNames,domain,string,Constant,NA,NA
 Mannings.Type,Constant,string,Constant,NA,NA
-Patch.x-lower.BCPressure.alltime.Value,[gw],double,Variable,0,10
+Patch.x-lower.BCPressure.alltime.Value,[gw],list,Variable,0 1 2.5 5 7.5 9 10, NA
 Patch.x-lower.BCPressure.Cycle,constant,string,Constant,NA,NA
 Patch.x-lower.BCPressure.RefGeom,domain,string,Constant,NA,NA
 Patch.x-lower.BCPressure.RefPatch,z-lower,string,Constant,NA,NA
 Patch.x-lower.BCPressure.Type,DirEquilRefPatch,string,Constant,NA,NA
-Patch.x-upper.BCPressure.alltime.Value,[gw],double,Variable,0,10
+Patch.x-upper.BCPressure.alltime.Value,[gw],list,Variable,0 1 2.5 5 7.5 9 10, NA
 Patch.x-upper.BCPressure.Cycle,constant,string,Constant,NA,NA
 Patch.x-upper.BCPressure.RefGeom,domain,string,Constant,NA,NA
 Patch.x-upper.BCPressure.RefPatch,z-lower,string,Constant,NA,NA
 Patch.x-upper.BCPressure.Type,DirEquilRefPatch,string,Constant,NA,NA
-Patch.y-lower.BCPressure.alltime.Value,[gw],double,Variable,0,10
+Patch.y-lower.BCPressure.alltime.Value,[gw],list,Variable,0 1 2.5 5 7.5 9 10, NA
 Patch.y-lower.BCPressure.Cycle,constant,string,Constant,NA,NA
 Patch.y-lower.BCPressure.RefGeom,domain,string,Constant,NA,NA
 Patch.y-lower.BCPressure.RefPatch,z-lower,string,Constant,NA,NA
 Patch.y-lower.BCPressure.Type,DirEquilRefPatch,string,Constant,NA,NA
-Patch.y-upper.BCPressure.alltime.Value,[gw],double,Variable,0,10
+Patch.y-upper.BCPressure.alltime.Value,[gw],list,Variable,0 1 2.5 5 7.5 9 10, NA
 Patch.y-upper.BCPressure.Cycle,constant,string,Constant,NA,NA
 Patch.y-upper.BCPressure.RefGeom,domain,string,Constant,NA,NA
 Patch.y-upper.BCPressure.RefPatch,z-lower,string,Constant,NA,NA
@@ -83,7 +83,7 @@ Patch.z-lower.BCPressure.Cycle,constant,string,Constant,NA,NA
 Patch.z-lower.BCPressure.Type,FluxConst,string,Constant,NA,NA
 Patch.z-upper.BCPressure.Cycle,prerainrec,string,Constant,NA,NA
 Patch.z-upper.BCPressure.pre.Value,0,double,Constant,NA,NA
-Patch.z-upper.BCPressure.rain.Value,[rainrate],double,Variable,0.00001,0.05
+Patch.z-upper.BCPressure.rain.Value,[rainrate],list,Variable,-0.01 -0.05 -0.1 -0.5,NA
 Patch.z-upper.BCPressure.rec.Value,0,double,Constant,NA,NA
 Patch.z-upper.BCPressure.Type,OverlandFlow,string,Constant,NA,NA
 Perm.TensorType,TensorByGeom,string,Constant,NA,NA

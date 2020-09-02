@@ -49,7 +49,7 @@ def pfidbGen(runData):              # generates PFIDB File for Run given input d
         if keyVals[i] == 'nan': #nan values should be empty strings
             f.write("0")
             f.write("\n")
-            f.write("\n")
+            #f.write("\n")
         else:
             f.write(str(valueLengths[i]))
             f.write("\n")
@@ -166,14 +166,15 @@ def processDataSC(rpars):
         else:
             allData = allData.append(hourDat)
 
-    # add a datetime to the data
+    # reset index
+    allData = allData.reset_index()
 
 
     # calculate storage
     # storage is dx*dy*dz*press*Ss*Sat + Sat*porosity
     dx = rpars['ComputationalGrid.DX']
     dy = rpars['ComputationalGrid.DY']
-    dz = rpars['ComputationalGrid.DY']
+    dz = rpars['ComputationalGrid.DZ']
     por = rpars['Geom.domain.Porosity.Value']
     ss = rpars['Geom.domain.SpecificStorage.Value']
     sto_colnames = ['sto_' + str(l) for l in allLayers]
@@ -185,12 +186,16 @@ def processDataSC(rpars):
         allData[sto_colnames[i]] = sto
 
     # total storage over time
-    
+    allData['totalSto'] = allData[sto_colnames].sum(axis='columns')
 
     # save all data
     fileOut = '../FullRunData/FullRunData_test' + str(n) + ".csv"
     #fileOut = 'FullRunData/FullRunData_test' + str(n) + ".csv"
     allData.to_csv(fileOut,index=False) 
+
+    # save single line total storage
+    fileOut = '../TotalStorageData/TotSto_test' + str(n) + ".csv"
+    allData.totalSto.to_csv(fileOut,index=False)
 
 
     if LSM:
@@ -218,42 +223,32 @@ def processDataSC(rpars):
     chngStoTots = pd.DataFrame(diffSto).transpose()
     chngStoTots.columns = ['Chng_' + s for s in chngStoTots.columns] 
 
+    # add data for 'peak' storage, for all layers and for total storage
+    # 'output' variables
+    # initial storage - gets time right before rain
+    hrsPreRain = rpars['Cycle.prerainrec.pre.Length'] - 1
+    sto_colnames.append('totalSto')
+    stoData = allData[sto_colnames]
+    allSto_init = stoData.iloc[hrsPreRain,]
+    allSto_final = stoData.iloc[-1,]
+    allSto_max = stoData.max(axis=0)
+    allSto_hourMax = stoData.idxmax(axis=0)
 
+    # get column names
+    initCols = pd.Series([s + '_init' for s in sto_colnames])
+    finalCols = pd.Series([s + '_final' for s in sto_colnames])
+    maxCols = pd.Series([s + '_max' for s in sto_colnames])
+    hourMaxCols = pd.Series([s + '_hrMax' for s in sto_colnames])
+    allCols = pd.concat([initCols,finalCols,maxCols,hourMaxCols])
 
-    #chngSData = allData[sat_colnames]
-    #initialSAT = chngSData.iloc[0]
-    #finalSAT = chngSData.iloc[len(chngSData)-1]
-    #diffSAT = finalSAT.subtract(initialSAT)
-    #chngSTots = pd.DataFrame(diffSAT).transpose()
-    #chngSTots.columns = ['Chng_' + s for s in chngSTots.columns]
+    # pull data together and write it out for Total Storage Data
+    allStoData_out = pd.concat([allSto_init,allSto_final,allSto_max,allSto_hourMax])
+    allStoDataDF = pd.DataFrame(allStoData_out).transpose()
+    allStoDataDF.columns=allCols
+    fileOut = '../SingleLineOutput/SL_Storage_test' + str(n) + ".csv"
+    allStoDataDF.to_csv(fileOut,index=False)
 
-    #chngPData = allData[pres_colnames]
-    #initialPRES = chngPData.iloc[0]
-    #finalPRES = chngPData.iloc[len(chngPData)-1]
-    #diffPRES = finalPRES.subtract(initialPRES)
-    #chngPTots = pd.DataFrame(diffPRES).transpose()
-    #chngPTots.columns = ['Chng_' + s for s in chngPTots.columns]
-
-
-    # if clmlay < 10 or nlay < 1000:
-    #     blankDatSat = np.empty((1,(1000 - nlay)))
-    #     blankDatSat[:] = np.NaN
-    #     blankDatTemp = np.empty((1,(10 - clmlay)))
-    #     blankDatTemp[:] = np.NaN
-
-    #     blankSATDF = pd.DataFrame(blankDatSat)
-    #     blankPRESDF = blankSATDF
-    #     blankSATDF.columns = [ 'Chng_sat_' + str(l) for l in list(np.arange(nlay+1,1001))]
-    #     blankPRESDF.columns = [ 'Chng_press_' + str(l) for l in list(np.arange(nlay+1,1001))]
-    #     blankTempDF = pd.DataFrame(blankDatTemp)
-    #     blankTempDF.columns = [ 'Mean_' + str(l) for l in list(np.arange(clmlay+1,11))]
-
-    #     # add it to dataframes
-    #     tempTots = pd.concat([tempTots,blankTempDF], axis=1)
-    #     chngPTots = pd.concat([chngPTots,blankPRESDF], axis=1)
-    #     chngSTots = pd.concat([chngSTots,blankSATDF], axis=1)
-
-    # merge data frames
+    # merge data frames for Single Line Output
     chngStoTots=chngStoTots.reset_index(drop=True)
 
     if LSM:
@@ -334,27 +329,30 @@ def runSingleFolder(runset): # this is for running in parallel w/ a set number o
 
         # run your program
         #os.system("$PARFLOW_DIR/bin/parflow test > parflow.test.log")
-        start = time.time()
-        os.system("$PARFLOW_DIR/bin/parflow test  > parflow.test.log")
-        end = time.time()
+        try: 
+            start = time.time()
+            os.system("$PARFLOW_DIR/bin/parflow test  > parflow.test.log")
+            end = time.time()
 
-        # save runtime
-        totaltime = end - start
-        f = open(outfn,'a')
-        testn = runParameters['n']
-        f.write(str(testn) + "," + str(totaltime))
-        f.write("\n")
-        f.close()
+            # save runtime
+            totaltime = end - start
+            f = open(outfn,'a')
+            testn = runParameters['n']
+            f.write(str(testn) + "," + str(totaltime))
+            f.write("\n")
+            f.close()
 
         #print('Parflow Run Done')
 
-        # process the data
-        #nclm = runParameters['Solver.CLM.RootZoneNZ']
-        #totalLayers = runParameters['ComputationalGrid.NZ']
-        #runLen = runParameters['TimingInfo.StopTime']
-        processDataSC(runParameters)
-        #print('Processing Complete')
-        #print('Deleting old pfidb file')
+            # process the data
+            #nclm = runParameters['Solver.CLM.RootZoneNZ']
+            #totalLayers = runParameters['ComputationalGrid.NZ']
+            #runLen = runParameters['TimingInfo.StopTime']
+            processDataSC(runParameters)
+            #print('Processing Complete')
+            #print('Deleting old pfidb file')
+        except:
+            'parflow failed'
         os.system('rm test.pfidb')
 
     # delete the directory when all runs have been completed
