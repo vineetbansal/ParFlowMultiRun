@@ -1,5 +1,4 @@
-runScripts/test.py
-runScripts/test2.py
+runScripts/test*.py
 runScripts/currtest
 runScripts/__pycache__
 runScripts/build
