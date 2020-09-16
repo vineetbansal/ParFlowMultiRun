@@ -12,7 +12,7 @@ import time
 import datetime
 
 
-def pullTimeSeries(runLen,nz,nclm=0,pullVars=[('sat','test.out.satur'),('press','test.out.press'),('clm','test.out.clm_output')]):
+def pullTimeSeries(runLen,nz,nclm=0,pullVars=[('sat','test.out.satur'),('press','test.out.press'),('clm','test.out.clm_output')],clmColnames=np.NaN):
     ''' get full time series of pressure, saturation, and LSM data '''
     ''' input data:
         runLen is the number of hour of run files
@@ -82,7 +82,7 @@ def addStorage(allData,nz,dz,ss,por):
     # total storage over time
     allData['totalSto'] = allData[sto_colnames].sum(axis='columns')
 
-    return allData
+    return allData, sto_colnames
 
 def processDataSC(rpars, saveAllData=True, saveAllSL=True, calcSto = True, saveAllSto = True, calcStoStats=True, saveStoSL=True):
     '''process parflow output data'''
@@ -94,6 +94,13 @@ def processDataSC(rpars, saveAllData=True, saveAllSL=True, calcSto = True, saveA
     try:
         LSM = rpars['Solver.LSM'] == 'CLM'
         nclm = rpars['Solver.CLM.RootZoneNZ']
+        clmLayers = list(np.arange(1,nclm+1)) # list of all soil layers
+        clmColnames =  ['eflx_lh_tot','eflx_lwrad_out','eflx_sh_tot',
+                        'eflx_soil_grnd','qflx_evap_tot','qflx_evap_grnd',
+                        'qflx_evap_soi','qflx_evap_veg','qflx_trans_veg',
+                        'qflx_infl','swe_out','t_grnd','qflx_qirr']
+        clmColnames.extend(['tsoil_' + str(l) for l in clmLayers]) # adds a soil temperature list
+        
     except:
         LSM = False
         nclm = 0
@@ -108,7 +115,7 @@ def processDataSC(rpars, saveAllData=True, saveAllSL=True, calcSto = True, saveA
         dz = rpars['ComputationalGrid.DZ']
         por = rpars['Geom.domain.Porosity.Value']
         ss = rpars['Geom.domain.SpecificStorage.Value']
-        allData = addStorage(allData,nz,dz,ss,por)
+        allData, sto_colnames = addStorage(allData,nz,dz,ss,por)
 
     # save all press/sat/clm data
     if saveAllData:

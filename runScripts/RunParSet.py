@@ -115,7 +115,7 @@ def getAllInputRows(paramFile): # gets all input rows
     allPar = pd.read_csv(paramFile, delimiter=",", header=0) # room for improvement here, may be removed when 'well' parallelized to loop through parameter set
     #linePar = allPar.iloc[n]
     return allPar
-      
+
 def runSet(parLine, parameterFN):
     #parameterFN = "ParameterSets_AutoGenPY.csv"
     # create your run directory
