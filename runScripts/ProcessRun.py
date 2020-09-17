@@ -20,13 +20,11 @@ def pullTimeSeries(runLen,nz,nclm=0,pullVars=[('sat','test.out.satur'),('press',
         nz is the number of verticle layers
         pull vars is a list of tuples with the name for the column header output, and the file name prefixes
     '''
-    print('inside pulling time series function')
     allLayers = list(np.arange(1,nz+1)) # list of all soil layers
 
     # pull data for all variables
     firstVar = True
     for var, varpre in pullVars:
-        print('pulling var: ' + var)
 
         # create column names (w/ more complexity for CLM variable)
         if var == 'clm':
@@ -92,12 +90,9 @@ def addStorage(allData,nz,dz,ss,por):
 
 def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Total, saveRecCurve_Layers, saveCLMSL, saveStoStats):
     '''process parflow output data'''
-    print('inside processing script')
     n = rpars['n']
     nz = rpars['ComputationalGrid.NZ']
     runLen = rpars['TimingInfo.StopTime']
-
-    print('Runlength: ' +str(runLen))
 
     # check if clm is being used
     try:
@@ -118,13 +113,10 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
         nclm = 0
         pullFiles = [('sat','test.out.satur'),('press','test.out.press')]
 
-    print('pulling all pf files')
     allData = pullTimeSeries(runLen,nz,nclm=nclm,pullVars=pullFiles)
-    print('all data pulled')
 
     # save all press/sat/clm data
     if parDict['saveAllPFData']:
-        print('saving all parflow data')
         fileOut = '../FullRunData/FullRunData_run' + str(n) + ".csv"
         allData.to_csv(fileOut,index=False) 
 
@@ -149,23 +141,15 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
     
     if parDict['saveRecCurve_Layers']:
         # save storage curves for [top 0-0.1m (if dz <= 0.1), 0-1m, 0-2m, 1m-2m, 2m-10m]
-        print('saving recession curve data for layers')
         # need to calculate each layer's 'centroid' depth
         layCent = np.arange(0,nz) * dz + dz/2
-        print('layer centroids created')
 
         # top 1m
-        print('subsetting lay storage, sending to curve fit')
         layNums = np.where(layCent > 9)[0] + 1 #layer numbers are not zero-indexed
-        print('laynums:')
-        print(layNums)
         layNames = ['sto_' + str(l) for l in layNums]
-        print(layNames)
         laySto = allData[layNames].mean(axis=1)
-        print(laySto[0])
         fileOut = '../SingleLineOutput/SL_StoRecCurveFit_1m_run' + str(n) + '.csv'
         fitRecCurve(laySto, fileOut)
-        print('successfully fit')
 
         # top 2m
         layNums = np.where(layCent > 8)[0] +1 
@@ -182,11 +166,9 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
         fitRecCurve(laySto, fileOut)
 
         # top 2m
-        print('calculating 2-10m depth data')
         layNums = np.where(layCent < 8)[0] +1 
         layNames = ['sto_' + str(l) for l in layNums]
         laySto = allData[layNames].mean(axis=1)
-        print('got layer storage')
         fileOut = '../SingleLineOutput/SL_StoRecCurveFit_2-10m_run' + str(n) + '.csv'
         fitRecCurve(laySto, fileOut)
 
@@ -197,7 +179,6 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
             laySto = allData[layNames].mean(axis=1)
             fileOut = '../SingleLineOutput/SL_StoRecCurveFit_01m_run' + str(n) + '.csv'
             fitRecCurve(laySto, fileOut)
-        print('Done with all layer Rec fits')
 
     # calculate/save all CLM single line data
     if parDict['saveCLMSL']:
@@ -230,13 +211,11 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
         else:
             print('Error: saveCLMSL set to true but CLM did not run...')
 
-        # calculate and save storage statistics
-        # add data for 'peak' storage, for all layers and for total storage
-        # 'output' variables
-        # initial storage - gets time right before rain
+    # calculate and save storage statistics
+    # add data for 'peak' storage, for all layers and for total storage
+    # 'output' variables
+    # initial storage - gets time right before rain
 
-    print('why wont savestats run??')
-    print(parDict['saveStoStats'])
     if parDict['saveStoStats']:
         print('saving storage stats')
         hrsPreRain = rpars['Cycle.prerainrec.pre.Length'] - 1

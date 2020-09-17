@@ -134,10 +134,6 @@ def runSet(parLine, parameterFN, parDict):
     os.system("$PARFLOW_DIR/bin/parflow test > parflow.test.log")
 
     # process the data
-    #nclm = runParameters['Solver.CLM.RootZoneNZ']
-    #totalLayers = runParameters['ComputationalGrid.NZ']
-    #testn = runParameters['n']
-    #runLen = runParameters['TimingInfo.StopTime']
     processDataSC(runParameters,parDict)
 
     os.system('rm test.pfidb')
@@ -163,7 +159,7 @@ def runSingleFolder(runset,parDict): # this is for running in parallel w/ a set 
 
     os.chdir(newRunDir)
 
-    outfn = '../runTimes_' + str(runset) + '.csv'
+    outfn = '../RunTimeData/runTimes_' + str(runset) + '.csv'
 
     for currset in range(nsets):
         print('Running Set ' + str(currset))
@@ -173,7 +169,6 @@ def runSingleFolder(runset,parDict): # this is for running in parallel w/ a set 
 
         # create your pfidb file
         pfidbGen(runParameters)
-        #print('PfidbGenerated')
 
         # run your program
         #os.system("$PARFLOW_DIR/bin/parflow test > parflow.test.log")
@@ -190,16 +185,9 @@ def runSingleFolder(runset,parDict): # this is for running in parallel w/ a set 
             f.write("\n")
             f.close()
 
-        #print('Parflow Run Done')
-
-            # process the data
-            #nclm = runParameters['Solver.CLM.RootZoneNZ']
-            #totalLayers = runParameters['ComputationalGrid.NZ']
-            #runLen = runParameters['TimingInfo.StopTime']
             print('run complete, processing data')
             processDataSC(runParameters,parDict)
-            #print('Processing Complete')
-            #print('Deleting old pfidb file')
+
         except:
             'parflow failed'
         os.system('rm test.pfidb')
