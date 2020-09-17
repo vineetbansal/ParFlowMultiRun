@@ -116,7 +116,7 @@ def getAllInputRows(paramFile): # gets all input rows
     #linePar = allPar.iloc[n]
     return allPar
 
-def runSet(parLine, parameterFN):
+def runSet(parLine, parameterFN, parDict):
     #parameterFN = "ParameterSets_AutoGenPY.csv"
     # create your run directory
     newRunDir = createRunDir(parLine)
@@ -138,7 +138,7 @@ def runSet(parLine, parameterFN):
     #totalLayers = runParameters['ComputationalGrid.NZ']
     #testn = runParameters['n']
     #runLen = runParameters['TimingInfo.StopTime']
-    processDataSC(runParameters)
+    processDataSC(runParameters,parDict)
 
     os.system('rm test.pfidb')
 
@@ -148,7 +148,7 @@ def runSet(parLine, parameterFN):
 
     return 'parameter set complete: ' + str(parLine)
 
-def runSingleFolder(runset): # this is for running in parallel w/ a set number of maximum folders running at a time.
+def runSingleFolder(runset,parDict): # this is for running in parallel w/ a set number of maximum folders running at a time.
     # first we'll create a single run folder
 
     runset = runset - 1 # the GNU parallel is running a sequence from 1-5 but python wants 0-4, correct here.
@@ -196,7 +196,8 @@ def runSingleFolder(runset): # this is for running in parallel w/ a set number o
             #nclm = runParameters['Solver.CLM.RootZoneNZ']
             #totalLayers = runParameters['ComputationalGrid.NZ']
             #runLen = runParameters['TimingInfo.StopTime']
-            processDataSC(runParameters)
+            print('run complete, processing data')
+            processDataSC(runParameters,parDict)
             #print('Processing Complete')
             #print('Deleting old pfidb file')
         except:
@@ -209,7 +210,13 @@ def runSingleFolder(runset): # this is for running in parallel w/ a set number o
 
 def main():
     runset = int(sys.argv[1])
-    runSingleFolder(runset)
+
+    # default key values
+    keys=['saveAllPFData','saveTotStoSL','saveRecCurve_Total', 'saveRecCurve_Layers', 'saveCLMSL', 'saveStoStats']
+    defaultVals = [True,True,True,True,True,True]
+    defaultDict = dict(zip(keys,defaultVals))
+
+    runSingleFolder(runset,defaultVals)
 
     # old def main -> When file creation not restricted (no go on Cheyenne)
     # runLine = int(sys.argv[1],"ParameterSets_AutoGenPY.csv")

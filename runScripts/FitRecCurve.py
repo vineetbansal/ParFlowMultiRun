@@ -18,7 +18,7 @@ def fitModel(model,xvalues,yvalues,p0s):
 
     # try to fit it
     try:
-        popt,pcov = curve_fit(model,xvalues,yvalues,p0=p0s)
+        popt = curve_fit(model,xvalues,yvalues,p0=p0s)[0]
         model_stats = getfitstats(model(xvalues, *popt), yvalues)
     except:
         popt = np.empty(len(p0s))

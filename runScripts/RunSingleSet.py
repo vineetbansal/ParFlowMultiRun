@@ -13,7 +13,7 @@ import datetime
 from RunParSet import getAllInputRows, pfidbGen, processDataSC,createRunDir
 
 
-folderName = 'SmallFixedTest'
+folderName = 'SmallFixedTest2'
 os.chdir(folderName)
 runset = int(sys.argv[1])
 
@@ -65,7 +65,7 @@ for currset in range(nsets):
     #totalLayers = runParameters['ComputationalGrid.NZ']
     #runLen = runParameters['TimingInfo.StopTime']
     try:
-        processDataSC(runParameters)
+        processDataSC(runParameters, True, True, True, True, True, True)
     except: 
         print('processing failed for Run '+str(currset))
     #print('Processing Complete')
