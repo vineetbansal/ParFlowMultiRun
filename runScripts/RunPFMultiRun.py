@@ -1,13 +1,11 @@
 
-
 from SC_GenerateParamSet import genParSet
 from RunParSet import runSingleFolder
 import os
 
-
 def readInputFile():
     fn = 'SCInput.txt'
-    keys=['runFolder','inputDir','parFN','irrFN','totaln','nfold','saveAllPFData','saveTotStoSL','saveRecCurve_Total', 'saveRecCurve_Layers', 'saveCLMSL', 'saveStoStats']
+    keys=['runFolder','inputDir','parFN','irrFN','totaln','nfold','randomseed','saveAllPFData','saveTotStoSL','saveRecCurve_Total', 'saveRecCurve_Layers', 'saveCLMSL', 'saveStoStats']
     values = []
 
     # get key values from inputfile
@@ -26,9 +24,7 @@ def readInputFile():
 
             values.append(currValue)
 
-
     return dict(zip(keys,values)) #dictionary of key names and values
-
 
 def createNewRun():
 
@@ -36,7 +32,7 @@ def createNewRun():
     inputData = readInputFile()
 
     # generate run simulation parameters
-    genParSet(inputData['totaln'],inputData['parFN'],inputData['runFolder'],inputData['nfold'])
+    genParSet(inputData['totaln'],inputData['parFN'],inputData['runFolder'],inputData['nfold'],inputData['randomseed'])
     
     # move into run directory
     os.chdir(inputData['runFolder'])
@@ -49,24 +45,9 @@ def createNewRun():
     # enter parallel code here VVVVVVV
     runSingleFolder(1, inputData) 
 
-
 def main():
     createNewRun()
 
 if __name__ == "__main__":
 
     main() # main is passed the line in the parameter file that you want to pull
-
-
-
-
-
-
-
-# generate parameter sets
-
-
-
-
-# Multiple calls to Run Par Set
-

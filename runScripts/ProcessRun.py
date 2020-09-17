@@ -96,7 +96,6 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
 
     # check if clm is being used
     try:
-        print('LSM on')
         LSM = rpars['Solver.LSM'] == 'CLM'
         nclm = rpars['Solver.CLM.RootZoneNZ']
         clmLayers = list(np.arange(1,nclm+1)) # list of all soil layers
@@ -108,7 +107,6 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
         pullFiles = [('sat','test.out.satur'),('press','test.out.press'),('clm','test.out.clm_output')]
         
     except:
-        print('no LSM')
         LSM = False
         nclm = 0
         pullFiles = [('sat','test.out.satur'),('press','test.out.press')]

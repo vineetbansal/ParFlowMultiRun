@@ -1,7 +1,7 @@
 
 # Converted from 'SC_GenerateParameterSets.R'
 
-def genParSet(n,inputFile,testDir,numFiles):
+def genParSet(n,inputFile,testDir,numFiles,randseed):
 
    import pandas as pd
    import numpy as np
@@ -26,10 +26,8 @@ def genParSet(n,inputFile,testDir,numFiles):
    parDataSets={'n': list(range(0,n))}
    parDF=pd.DataFrame(parDataSets)
 
-   print(inputVarDF.head())
-
+   random.seed(randseed)
    for var in varNames:
-      print(var)
       varIdx = varVars[varVars['SCValue']==var]
       if varIdx['inputType'].iat[0] =='double': 
          varmin = int(float(varIdx['MinRange'].iat[0])*1000*n)
@@ -47,7 +45,6 @@ def genParSet(n,inputFile,testDir,numFiles):
       for name in varIdx['KeyName']:
          parDF[name]=varValues
 
-
    ##### Constant Variables ####
    # add on constant variables
    # grab constant variables, these won't need to be changed, can be read straight in
@@ -55,7 +52,6 @@ def genParSet(n,inputFile,testDir,numFiles):
    constantKeys = constantVars['KeyName']
 
    for key in constantKeys:
-      #print(key)
       keyRow = constantVars[constantVars['KeyName']==key]
       keyValue = keyRow['SCValue'].iat[0]
       parDF[key] = [keyValue] * n
@@ -120,10 +116,8 @@ def genParSet(n,inputFile,testDir,numFiles):
          else:
             parValue = parValue.astype('int')
 
-
       for j in range(len(allargs)-2):
           currarg = allargs[j + 2]
-         
           currValue = parDF[currarg]
 
           # check variable type & convert
@@ -148,16 +142,18 @@ def genParSet(n,inputFile,testDir,numFiles):
    os.system('mkdir ' + testDir + '/FullRunData')
    os.system('mkdir ' + testDir + '/SingleLineOutput')
    os.system('mkdir ' + testDir + '/RunTimeData')
-   os.system('mkdir ' + testDir + '/TotalStorageData')
-   os.system('cp -r clm_input/ ' + testDir)
+   #os.system('mkdir ' + testDir + '/TotalStorageData')
+
+   try:
+      os.system('cp -r clm_input/ ' + testDir)
+   except:
+      print('No CLM Inputs')
 
    # write out parameter data set variables to number of files
-   print(n)
-   print(numFiles)
    numFiles = int(numFiles)
 
    if numFiles == 1:
-      outfn = testDir + '/ParameterSets_AutoGenPY.csv'
+      outfn = testDir + '/ParameterSets_AutoGenPY_0.csv'
       parDF.to_csv(outfn,index=False)
    else:
       filesPerOutF = n/numFiles
@@ -172,14 +168,14 @@ def genParSet(n,inputFile,testDir,numFiles):
          outfn = testDir + '/ParameterSets_AutoGenPY_' + str(nf) + '.csv'
          parDF_sub.to_csv(outfn,index=False)
 
-
 def main():
     import sys
     n = int(sys.argv[1])
     inputFile = sys.argv[2]
     testDir =sys.argv[3]
     nfiles = sys.argv[4]
-    genParSet(n,inputFile,testDir,nfiles)
+    rs = sys.argv[5]
+    genParSet(n,inputFile,testDir,nfiles,rs)
 
 if __name__ == "__main__":
 
