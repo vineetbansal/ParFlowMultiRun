@@ -1,0 +1,157 @@
+KeyName,SCValue,input type,set,MinRange,MaxRange
+ComputationalGrid.DZ,divide Geom.domain.Upper.Z ComputationalGrid.NZ,double,Calculate,NA,NA
+Cycle.prerainrec.rec.Length,subtract TimingInfo.StopTime Cycle.prerainrec.pre.Length Cycle.prerainrec.rain.Length,integer,Calculate,NA,NA
+Geom.domain.Upper.X,multiply ComputationalGrid.NX ComputationalGrid.DX,double,Calculate,NA,NA
+Geom.domain.Upper.Y,multiply ComputationalGrid.NY ComputationalGrid.DY,double,Calculate,NA,NA
+Geom.domain.Upper.Z,10,double,Constant,NA,NA
+BCPressure.PatchNames,x-lower x-upper y-lower y-upper z-lower z-upper,list/string,Constant,NA,NA
+ComputationalGrid.Lower.X,0,double,Constant,NA,NA
+ComputationalGrid.Lower.Y,0,double,Constant,NA,NA
+ComputationalGrid.Lower.Z,0,double,Constant,NA,NA
+ComputationalGrid.NX,1,integer,Constant,NA,NA
+ComputationalGrid.NY,1,integer,Constant,NA,NA
+Contaminants.Names,,string,Constant,NA,NA
+Cycle.constant.alltime.Length,1,integer,Constant,NA,NA
+Cycle.constant.Repeat,-1,integer,Constant,NA,NA
+Cycle.constant.Names,alltime,string,Constant,NA,NA
+Cycle.Names,constant prerainrec,string,Constant,NA,NA
+Cycle.prerainrec.Names,pre rain rec,string,Constant,NA,NA
+Cycle.prerainrec.pre.Length,148,integer,Constant,NA,NA
+Cycle.prerainrec.rain.Length,6,integer,Constant,NA,NA
+Cycle.prerainrec.Repeat,-1,integer,Constant,NA,NA
+Domain.GeomName,domain,string,Constant,NA,NA
+FileVersion,4,integer,Constant,NA,NA
+Geom.domain.ICPressure.RefGeom,domain,string,Constant,NA,NA
+Geom.domain.ICPressure.RefPatch,z-lower,string,Constant,NA,NA
+Geom.domain.Lower.X,0,double,Constant,NA,NA
+Geom.domain.Lower.Y,0,double,Constant,NA,NA
+Geom.domain.Lower.Z,0,double,Constant,NA,NA
+Geom.domain.Patches,x-lower x-upper y-lower y-upper z-lower z-upper,double,Constant,NA,NA
+Geom.domain.Perm.TensorValX,1,double,Constant,NA,NA
+Geom.domain.Perm.TensorValY,1,double,Constant,NA,NA
+Geom.domain.Perm.Type,Constant,string,Constant,NA,NA
+Geom.domain.Porosity.Type,Constant,string,Constant,NA,NA
+Geom.domain.Saturation.SSat,1,double,Constant,NA,NA
+Geom.Perm.Names,domain,list/string,Constant,NA,NA
+Geom.Perm.TensorByGeom.Names,domain,string,Constant,NA,NA
+Geom.Porosity.GeomNames,domain,string,Constant,NA,NA
+GeomInput.domain_input.GeomName,domain,string,Constant,NA,NA
+GeomInput.domain_input.InputType,Box,string,Constant,NA,NA
+GeomInput.Names,domain_input,string,Constant,NA,NA
+Gravity,1,double,Constant,NA,NA
+ICPressure.GeomNames,domain,string,Constant,NA,NA
+ICPressure.Type,HydroStaticPatch,string,Constant,NA,NA
+KnownSolution,NoKnownSolution,string,Constant,NA,NA
+Mannings.GeomNames,domain,string,Constant,NA,NA
+Mannings.Type,Constant,string,Constant,NA,NA
+Patch.x-lower.BCPressure.Cycle,constant,string,Constant,NA,NA
+Patch.x-lower.BCPressure.RefGeom,domain,string,Constant,NA,NA
+Patch.x-lower.BCPressure.RefPatch,z-lower,string,Constant,NA,NA
+Patch.x-lower.BCPressure.Type,DirEquilRefPatch,string,Constant,NA,NA
+Patch.x-upper.BCPressure.Cycle,constant,string,Constant,NA,NA
+Patch.x-upper.BCPressure.RefGeom,domain,string,Constant,NA,NA
+Patch.x-upper.BCPressure.RefPatch,z-lower,string,Constant,NA,NA
+Patch.x-upper.BCPressure.Type,DirEquilRefPatch,string,Constant,NA,NA
+Patch.y-lower.BCPressure.Cycle,constant,string,Constant,NA,NA
+Patch.y-lower.BCPressure.RefGeom,domain,string,Constant,NA,NA
+Patch.y-lower.BCPressure.RefPatch,z-lower,string,Constant,NA,NA
+Patch.y-lower.BCPressure.Type,DirEquilRefPatch,string,Constant,NA,NA
+Patch.y-upper.BCPressure.Cycle,constant,string,Constant,NA,NA
+Patch.y-upper.BCPressure.RefGeom,domain,string,Constant,NA,NA
+Patch.y-upper.BCPressure.RefPatch,z-lower,string,Constant,NA,NA
+Patch.y-upper.BCPressure.Type,DirEquilRefPatch,string,Constant,NA,NA
+Patch.z-lower.BCPressure.alltime.Value,0,double,Constant,NA,NA
+Patch.z-lower.BCPressure.Cycle,constant,string,Constant,NA,NA
+Patch.z-lower.BCPressure.Type,FluxConst,string,Constant,NA,NA
+Patch.z-upper.BCPressure.Cycle,prerainrec,string,Constant,NA,NA
+Patch.z-upper.BCPressure.pre.Value,0,double,Constant,NA,NA
+Patch.z-upper.BCPressure.rec.Value,0,double,Constant,NA,NA
+Patch.z-upper.BCPressure.Type,OverlandFlow,string,Constant,NA,NA
+Perm.TensorType,TensorByGeom,string,Constant,NA,NA
+Phase.Names,water,string,Constant,NA,NA
+Phase.RelPerm.GeomNames,domain,string,Constant,NA,NA
+Phase.RelPerm.Type,VanGenuchten,string,Constant,NA,NA
+Phase.Saturation.GeomNames,domain,string,Constant,NA,NA
+Phase.Saturation.Type,VanGenuchten,string,Constant,NA,NA
+Phase.water.Density.Type,Constant,string,Constant,NA,NA
+Phase.water.Density.Value,1,double,Constant,NA,NA
+Phase.water.Mobility.Type,Constant,string,Constant,NA,NA
+Phase.water.Mobility.Value,1,double,Constant,NA,NA
+Phase.water.Viscosity.Type,Constant,string,Constant,NA,NA
+Phase.water.Viscosity.Value,1,double,Constant,NA,NA
+PhaseSources.water.Geom.domain.Value,0,double,Constant,NA,NA
+PhaseSources.water.GeomNames,domain,string,Constant,NA,NA
+PhaseSources.water.Type,Constant,string,Constant,NA,NA
+Process.Topology.P,1,integer,Constant,NA,NA
+Process.Topology.Q,1,integer,Constant,NA,NA
+Process.Topology.R,1,integer,Constant,NA,NA
+Solver,Richards,string,Constant,NA,NA
+Solver.AbsTol,1E-09,double,Constant,NA,NA
+Solver.Drop,1E-20,double,Constant,NA,NA
+Solver.Linear.KrylovDimension,100,integer,Constant,NA,NA
+Solver.Linear.MaxRestarts,5,integer,Constant,NA,NA
+Solver.Linear.Preconditioner,PFMG,string,Constant,NA,NA
+Solver.Linear.Preconditioner.PCMatrixType,FullJacobian,string,Constant,NA,NA
+Solver.LSM,none,string,Constant,NA,NA
+Solver.MaxIter,55000,integer,Constant,NA,NA
+Solver.Nonlinear.DerivativeEpsilon,1E-12,double,Constant,NA,NA
+Solver.Nonlinear.EtaChoice,Walker1,string,Constant,NA,NA
+Solver.Nonlinear.EtaValue,0.01,double,Constant,NA,NA
+Solver.Nonlinear.Globalization,LineSearch,string,Constant,NA,NA
+Solver.Nonlinear.MaxIter,100,integer,Constant,NA,NA
+Solver.Nonlinear.ResidualTol,1E-09,double,Constant,NA,NA
+Solver.Nonlinear.StepTol,1E-20,double,Constant,NA,NA
+Solver.Nonlinear.UseJacobian,FALSE,string,Constant,NA,NA
+Solver.PrintLSMSink,FALSE,string,Constant,NA,NA
+Solver.PrintMask,TRUE,string,Constant,NA,NA
+Solver.PrintPressure,TRUE,string,Constant,NA,NA
+Solver.PrintSaturation,TRUE,string,Constant,NA,NA
+Solver.PrintSpecificStorage,TRUE,string,Constant,NA,NA
+Solver.PrintSubsurf,FALSE,string,Constant,NA,NA
+Solver.PrintSubsurfData,TRUE,string,Constant,NA,NA
+Solver.WriteOverlandSum,FALSE,string,Constant,NA,NA
+Solver.WriteSiloEvapTrans,FALSE,string,Constant,NA,NA
+Solver.WriteSiloEvapTransSum,FALSE,string,Constant,NA,NA
+Solver.WriteSiloMannings,FALSE,string,Constant,NA,NA
+Solver.WriteSiloMask,FALSE,string,Constant,NA,NA
+Solver.WriteSiloOverlandBCFlux,FALSE,string,Constant,NA,NA
+Solver.WriteSiloPressure,FALSE,string,Constant,NA,NA
+Solver.WriteSiloSaturation,FALSE,string,Constant,NA,NA
+Solver.WriteSiloSlopes,FALSE,string,Constant,NA,NA
+Solver.WriteSiloSpecificStorage,FALSE,string,Constant,NA,NA
+Solver.WriteSiloSubsurfData,FALSE,string,Constant,NA,NA
+SpecificStorage.GeomNames,domain,string,Constant,NA,NA
+SpecificStorage.Type,Constant,string,Constant,NA,NA
+TimeStep.Type,Constant,string,Constant,NA,NA
+TimeStep.Value,1,double,Constant,NA,NA
+TimingInfo.BaseUnit,1,double,Constant,NA,NA
+TimingInfo.DumpInterval,1,double,Constant,NA,NA
+TimingInfo.StartCount,0,integer,Constant,NA,NA
+TimingInfo.StartTime,0,double,Constant,NA,NA
+TimingInfo.StopTime,302,double,Constant,NA,NA
+TopoSlopesX.Geom.domain.Value,0.005,double,Constant,NA,NA
+TopoSlopesX.GeomNames,domain,string,Constant,NA,NA
+TopoSlopesX.Type,Constant,string,Constant,NA,NA
+TopoSlopesY.Geom.domain.Value,0,double,Constant,NA,NA
+TopoSlopesY.GeomNames,domain,string,Constant,NA,NA
+TopoSlopesY.Type,Constant,string,Constant,NA,NA
+Wells.Names,,list,Constant,NA,NA
+Geom.domain.Perm.TensorValZ,1,double,Constant,NA,NA
+Geom.domain.Perm.Value,0.0625,double,Constant,NA,NA
+Geom.domain.Porosity.Value,0.25,double,Constant,NA,NA
+Geom.domain.RelPerm.Alpha,0.0383,double,Constant,NA,NA
+Geom.domain.RelPerm.N,1.3774,double,Constant,NA,NA
+Geom.domain.Saturation.Alpha,0.0383,double,Constant,NA,NA
+Geom.domain.Saturation.N,1.3774,double,Constant,NA,NA
+Geom.domain.Saturation.SRes,0.025,double,Constant,NA,NA
+Geom.domain.SpecificStorage.Value,9.80E-05,double,Constant,NA,NA
+Mannings.Geom.domain.Value,1.00E-06,double,Constant,NA,NA
+ComputationalGrid.DX,[dxdy],list,Variable,1 10 100 1000, NA
+ComputationalGrid.DY,[dxdy],double,Variable,1 10 100 1000, NA
+ComputationalGrid.NZ,[nz],list,Variable,10 100 1000,NA
+Geom.domain.ICPressure.Value,[gw],list,Variable,0 2.5 5 7.5 10, NA
+Patch.x-lower.BCPressure.alltime.Value,[gw],list,Variable,0 2.5 5 7.5 10, NA
+Patch.x-upper.BCPressure.alltime.Value,[gw],list,Variable,0 2.5 5 7.5 10, NA
+Patch.y-lower.BCPressure.alltime.Value,[gw],list,Variable,0 2.5 5 7.5 10, NA
+Patch.y-upper.BCPressure.alltime.Value,[gw],list,Variable,0 2.5 5 7.5 10, NA
+Patch.z-upper.BCPressure.rain.Value,[rainrate],double,Variable,-0.5,-0.01
