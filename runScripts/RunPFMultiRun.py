@@ -4,14 +4,23 @@ from RunParSet import runSingleFolder
 import os
 
 def readInputFile():
-    fn = 'SCInput.txt'
+    '''
+    Reads ParflowMultiRun Input Parameters from SCInput.txt
+
+    Args: 
+        none
+    Returns:
+        dictionary with ParflowMultiRun Input Parameters
+    '''
+
+    fn = 'SCInput.txt' # input file (this file name should not change and always be in folder where ParFlowMultiRun is called)
     keys=['runFolder','inputDir','parFN','irrFN','totaln','nfold','randomseed','saveAllPFData','saveTotStoSL','saveRecCurve_Total', 'saveRecCurve_Layers', 'saveCLMSL', 'saveStoStats']
     values = []
 
     # get key values from inputfile
     with open(fn,'r') as f:
         for line in f:
-            #print(line)
+
             currValue = line.split('#')[0]
             currValue = currValue.strip()
 
@@ -27,6 +36,17 @@ def readInputFile():
     return dict(zip(keys,values)) #dictionary of key names and values
 
 def createNewRun():
+
+    '''
+    Generates new ParFlowMultiRun
+    Creates Run Files, and Directory
+    Based on Input File, Launches multiple parrallel (in progress) folder runs
+    
+    Args:
+        none
+    Returns:
+        none
+    '''
 
     # get run 'meta' parameters
     inputData = readInputFile()

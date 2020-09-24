@@ -1,33 +1,42 @@
 
 # Converted from 'SC_GenerateParameterSets.R'
 
-def genParSet(n,inputFile,testDir,numFiles,randseed):
+def genParSet(n,inputFile,testDir,numFold,randseed):
+   '''
+   Generates parameter sets based on Input File
+   Files with each of the parameter sets are written into the test directory (testDir)
 
+   Args:
+      n: number of parameter sets to generate
+      inputFile: file name w/ parflow parameter values
+      testDir: folder where ParFlow MultiRun will run
+      numFold: number of folders ParFlow MultiRun Running in (number of files to split parameters in)
+   Returns:
+      none
+
+   '''
    import pandas as pd
    import numpy as np
    import random
    import sys
    import os
 
-   ###################################
-   ##     CREATE PARAMETER SETS     ##
-   ###################################
+   # create parameter data sets
+   parDataSets={'n': list(range(0,n))}
+   parDF=pd.DataFrame(parDataSets)
 
    # load csv file of keys and values
    inputVarDF=pd.read_csv(inputFile, delimiter=',')
    inputVarDF.columns = ['KeyName', 'SCValue', 'inputType', 'set', 'MinRange', 'MaxRange']
 
-   ##### Variable Variables ####
-   # evaluate variable variables
+   # evaluate variable parameters
    varVars = inputVarDF[inputVarDF['set'] == 'Variable']
    varNames = np.unique(varVars['SCValue']) # some variables may be set together, so read unique names
 
-   # create parameter data sets
-   parDataSets={'n': list(range(0,n))}
-   parDF=pd.DataFrame(parDataSets)
-
-   random.seed(randseed)
-   for var in varNames:
+   random.seed(randseed) # set random seed for reproducibility
+   
+   # loop through each of the variables and create a set (size n) of random values
+   for var in varNames: 
       varIdx = varVars[varVars['SCValue']==var]
       if varIdx['inputType'].iat[0] =='double': 
          varmin = int(float(varIdx['MinRange'].iat[0])*1000*n)
@@ -45,24 +54,22 @@ def genParSet(n,inputFile,testDir,numFiles,randseed):
       for name in varIdx['KeyName']:
          parDF[name]=varValues
 
-   ##### Constant Variables ####
-   # add on constant variables
-   # grab constant variables, these won't need to be changed, can be read straight in
+   # add constant variables, these won't need to be changed, can be read straight in
    constantVars = inputVarDF[inputVarDF['set'] == 'Constant']
    constantKeys = constantVars['KeyName']
 
+   # add them to data frame with variable parameters
    for key in constantKeys:
       keyRow = constantVars[constantVars['KeyName']==key]
       keyValue = keyRow['SCValue'].iat[0]
       parDF[key] = [keyValue] * n
 
-
-   ##### Calculate Variables ####
    # calculate variables
    calcVars = inputVarDF[inputVarDF['set'] == 'Calculate']
 
-   ##### Irrigation Variables ####
+   ##### Irrigation Variables #### *** NEEDS WORK, MESSY.
    if 'Solver.CLM.IrrigationStartTime' in inputVarDF.KeyName.values:
+      
       # randomly generate volumes, durrations, and timings
       irrVols = [2.5,5,10]
       irrDurrs = [1,2.5,5,10]
@@ -87,6 +94,7 @@ def genParSet(n,inputFile,testDir,numFiles,randseed):
       irrRate = irrVolValues/irrDurrValues/3600
       parDF['Solver.CLM.IrrigationRate'] = irrRate
    
+   # Quick Fidelity Check
    # make sure clm soil layer not greater than the number of layers
    # first check if these variables exist
    if (('Solver.CLM.SoiLayer' in inputVarDF.KeyName.values) & ('Solver.CLM.RootZoneNZ' in inputVarDF.KeyName.values)):
@@ -95,6 +103,10 @@ def genParSet(n,inputFile,testDir,numFiles,randseed):
       parDF['Solver.CLM.SoiLayer'] = [parDF['Solver.CLM.SoiLayer'][i] if clmLayDif[i] < 0 else parDF['Solver.CLM.RootZoneNZ'][i] for i in range(len(parDF))]
 
    # calculate variables
+   # calculate variables should be in the same format [operator, var1, var2]
+   # operator can be [divide, multiply, add, or subtract]
+   
+   # loop through each calc Var
    for i in range(len(calcVars)):
       currRow = calcVars.iloc[i,:]
       allargs = currRow.SCValue.split(" ")
@@ -150,14 +162,14 @@ def genParSet(n,inputFile,testDir,numFiles,randseed):
       print('No CLM Inputs')
 
    # write out parameter data set variables to number of files
-   numFiles = int(numFiles)
+   numFold = int(numFold)
 
-   if numFiles == 1:
+   if numFold == 1:
       outfn = testDir + '/ParameterSets_AutoGenPY_0.csv'
       parDF.to_csv(outfn,index=False)
    else:
-      filesPerOutF = n/numFiles
-      for nf in range(numFiles):
+      filesPerOutF = n/numFold
+      for nf in range(numFold):
 
          # cut the out parameter set
          fileStart = nf * filesPerOutF
