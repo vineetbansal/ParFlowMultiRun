@@ -31,6 +31,11 @@ Inputs
 3. **ParFlow Irrigation parameter input (optional):** Input file with ParFlow irrigation Parameters
 4. **ParFlow and ParFlow-CLM Input Files (optional):** Parflow Run Input Files (e.g. indicator file, slope files, mannings files, clm driver files etc.)
 
+Outputs
+--------------------
+***Single Line Files***
+
+
 Settings
 --------------------
 The `SCInput.txt` file contains the ParflowMultiRun Parameters.
