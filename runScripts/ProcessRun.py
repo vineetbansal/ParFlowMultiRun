@@ -13,14 +13,26 @@ import datetime
 
 from FitRecCurve import *
 
-def pullTimeSeries(runLen,nz,nclm=0,pullVars=[('sat','test.out.satur'),('press','test.out.press')],clmColnames=np.NaN):
-    ''' get full time series of pressure, saturation, and LSM data '''
-    ''' input data:
-        runLen is the number of hour of run files
-        nz is the number of verticle layers
-        pull vars is a list of tuples with the name for the column header output, and the file name prefixes
+def pullTimeSeries(runLen,nz,nclm=0,pullVars=[('sat','test.out.satur'),('press','test.out.press')]):
+    ''' 
+    Pulls all Parflow output data for all variables including:
+        pressure
+        saturation 
+        CLM/LSM (if applicable)
+
+    Args:
+        runLen: length, in hours, of parflow run
+        nz: number of vertical layers in the parflow model
+        nclm: number of soil layers shared between parflow & clm (if applicable)
+        pullVars: list of tuples with variable name and file prefix
+        clmColnames: column names for clm data (if applicable)
+
+    Returns: 
+        Pandas Dataframe with all Parflow output data
     '''
-    allLayers = list(np.arange(1,nz+1)) # list of all soil layers
+
+    # list of all soil layers (based on nz)
+    allLayers = list(np.arange(1,nz+1)) 
 
     # pull data for all variables
     firstVar = True
@@ -28,7 +40,7 @@ def pullTimeSeries(runLen,nz,nclm=0,pullVars=[('sat','test.out.satur'),('press',
 
         # create column names (w/ more complexity for CLM variable)
         if var == 'clm':
-            clmLayers = list(np.arange(1,nclm+1)) # list of all soil layers
+            clmLayers = list(np.arange(1,nclm+1)) # list of all CLM soil layers (based on nclm)
             varColnames =  ['eflx_lh_tot','eflx_lwrad_out','eflx_sh_tot',
                             'eflx_soil_grnd','qflx_evap_tot','qflx_evap_grnd',
                             'qflx_evap_soi','qflx_evap_veg','qflx_trans_veg',
@@ -38,45 +50,76 @@ def pullTimeSeries(runLen,nz,nclm=0,pullVars=[('sat','test.out.satur'),('press',
         else:
             varColnames = [var + '_' + str(l) for l in allLayers]
             varpost='pfb'
-            
+
+        # pull variable data  
         varData = pullSingleVar(varpre,runLen,varColnames,post=varpost)
 
+        # merge into data frame with all variables 
         if firstVar:
-            allData = varData
+            allVarData = varData
             firstVar = False
         else:
-            allData = pd.concat([allData,varData],axis=1)
+            allVarData = pd.concat([allVarData,varData],axis=1)
 
-    return allData
+    return allVarData
 
 
 def pullSingleVar(prefix,runLen,colnames,post='pfb'):
+    '''
+    Pulls full time series for a single variable
 
-    #print('inside pull single var file')
+    Args:
+        prefix: parflow output file prefix
+        runLen: length, in hours, of parflow run (and output data) 
+        colnames: column names for output data/variable
+        post: file extension (default 'pfb', clmfiles 'C.pfb')
+    
+    Returns:
+        Pandas Dataframe with all variable data
+    '''
 
-    # Loop through all files and merge
+    # Loop through all files by 'hour' and merge
     for k in range(1,(runLen+1)):
-        fin = prefix + ".{:05d}.".format(k) + post
-        #print('attempting to pull file: '+ fin)
-        datINpf = pfio.pfread(fin)
-        datDF = pd.DataFrame(np.transpose(datINpf[:,:,0]),columns=colnames)
+        
+        # get hourly data
+        fin = prefix + ".{:05d}.".format(k) + post # set file name
+        datINpf = pfio.pfread(fin) # read in parflow file
+        datDF = pd.DataFrame(np.transpose(datINpf[:,:,0]),columns=colnames) 
 
+        # merge hourly data into single dataframe
         if k==1:
             datAll = datDF
         else:
             datAll = datAll.append(datDF, ignore_index=True) 
 
-    datAll = datAll.reset_index()
+    datAll = datAll.reset_index() # reset index for easier future merging
     
     return datAll
 
 def addStorage(allData,nz,dz,ss,por):
+    '''
+    Calculates storage data for all parflow timesteps, at all layers
+    Adds to Pandas DataFrame with all parflow output data
+
+    Args:
+        allData: all Parflow output data (Press, Saturation, and CLM if applicable)
+        nz: number of vertical layers in the parflow model
+        dz: vertical layer depth (currently only constant layer depths is configued)
+        ss: specific storage
+        por: porosity
+    
+    Returns:
+        tuple:
+            Panda Dataframe: updated parflow output and storage data
+            List of Storage column names (for easier access later)
+    '''
 
     allLayers = list(np.arange(1,nz+1)) # list of all soil layers
     sat_colnames = ['sat_' + str(l) for l in allLayers]
     pres_colnames = ['press_' + str(l) for l in allLayers]
     sto_colnames = ['sto_' + str(l) for l in allLayers]
 
+    # loop through each layer and calculate storage for that layer
     for i in range(nz):
         sat = allData[sat_colnames[i]]
         pres = allData[pres_colnames[i]]
@@ -85,35 +128,43 @@ def addStorage(allData,nz,dz,ss,por):
 
     # total storage over time
     allData['totalSto'] = allData[sto_colnames].sum(axis='columns')
+    sto_colnames.append('totalSto') # add to storage column names 
 
     return allData, sto_colnames
 
 def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Total, saveRecCurve_Layers, saveCLMSL, saveStoStats):
-    '''process parflow output data'''
+    '''
+    Processes Parflow Run Output. 
+    Data is processed based on processing selections in the SCInput.txt file (read in through ParDict)
+    
+    Args:
+        rpars: Pandas Dataframe with Parflow Run Parameters
+        parDict: Dictionary w/ ParflowMultiRun Parameters, including processing requirements
+    
+    Returns:
+        None, all data written out to file.
+    
+    '''
+
+    # Key Parflow Run Parameters
     n = rpars['n']
     nz = rpars['ComputationalGrid.NZ']
     runLen = rpars['TimingInfo.StopTime']
 
-    # check if clm is being used
+    # evaluate which parflow output to collect (varies depending on whether CLM/LSM was used)
     try:
-        LSM = rpars['Solver.LSM'] == 'CLM'
+        LSM = rpars['Solver.LSM'] == 'CLM' # check if clm is being used
         nclm = rpars['Solver.CLM.RootZoneNZ']
-        clmLayers = list(np.arange(1,nclm+1)) # list of all soil layers
-        clmColnames =  ['eflx_lh_tot','eflx_lwrad_out','eflx_sh_tot',
-                        'eflx_soil_grnd','qflx_evap_tot','qflx_evap_grnd',
-                        'qflx_evap_soi','qflx_evap_veg','qflx_trans_veg',
-                        'qflx_infl','swe_out','t_grnd','qflx_qirr']
-        clmColnames.extend(['tsoil_' + str(l) for l in clmLayers]) # adds a soil temperature list
-        pullFiles = [('sat','test.out.satur'),('press','test.out.press'),('clm','test.out.clm_output')]
-        
+        pullFiles = [('sat','test.out.satur'),('press','test.out.press'),('clm','test.out.clm_output')]     
     except:
         LSM = False
         nclm = 0
         pullFiles = [('sat','test.out.satur'),('press','test.out.press')]
 
+    # pull all Parflow Run Output Data
     allData = pullTimeSeries(runLen,nz,nclm=nclm,pullVars=pullFiles)
 
-    # save all press/sat/clm data
+    # save all press/sat/clm data (if applicable)
     if parDict['saveAllPFData']:
         fileOut = '../FullRunData/FullRunData_run' + str(n) + ".csv"
         allData.to_csv(fileOut,index=False) 
@@ -127,19 +178,22 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
         ss = rpars['Geom.domain.SpecificStorage.Value']
         allData, sto_colnames = addStorage(allData,nz,dz,ss,por)
 
-    # save storage single line data
+    # save storage single line data (if applicable)
     if parDict['saveTotStoSL']:
         # save single line total storage
         fileOut = '../SingleLineOutput/SL_TotStoAllHr_run' + str(n) + ".csv"
         allData.totalSto.to_csv(fileOut,index=False)
 
+    # save Total Storage Recession Curve Data as single line (if applicable)
     if parDict['saveRecCurve_Total']:
         fileOut = '../SingleLineOutput/SL_TotStoRecCurveFit_run' + str(n) + '.csv'
         fitRecCurve(allData.totalSto, fileOut)
     
+    # save Layer Recession Curve Data as single line file (if applicable)
     if parDict['saveRecCurve_Layers']:
         # save storage curves for [top 0-0.1m (if dz <= 0.1), 0-1m, 0-2m, 1m-2m, 2m-10m]
-        # need to calculate each layer's 'centroid' depth
+        
+        # calculate each layer's 'centroid' depth
         layCent = np.arange(0,nz) * dz + dz/2
 
         # top 1m
@@ -178,7 +232,7 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
             fileOut = '../SingleLineOutput/SL_StoRecCurveFit_01m_run' + str(n) + '.csv'
             fitRecCurve(laySto, fileOut)
 
-    # calculate/save all CLM single line data
+    # calculate/save all CLM single line data (if applicable)
     if parDict['saveCLMSL']:
 
         if LSM: # double check, can't save CLM data if CLM didn't run...
@@ -194,6 +248,7 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
             sweTots.columns = ['Mean_m_' + str(s) for s in sweTots.columns]
 
             tempVars = ['t_grnd']
+            clmLayers = list(np.arange(1,nclm+1))
             tempVars.extend(['tsoil_' + str(l) for l in clmLayers])
             tempData = allData[tempVars]
             tempTots = tempData.agg(['mean'])
@@ -207,36 +262,33 @@ def processDataSC(rpars,parDict): #,saveAllPFData,saveTotStoSL,saveRecCurve_Tota
             singleLineOut.to_csv(fileOut,index=False)
         
         else:
-            print('Error: saveCLMSL set to true but CLM did not run...')
+            print('WARNING: saveCLMSL set to true but CLM did not run...')
 
-    # calculate and save storage statistics
-    # add data for 'peak' storage, for all layers and for total storage
-    # 'output' variables
-    # initial storage - gets time right before rain
-
+    # calculate and save storage statistics (if applicable)
     if parDict['saveStoStats']:
-        print('saving storage stats')
-        hrsPreRain = rpars['Cycle.prerainrec.pre.Length'] - 1
-        allLayers = list(np.arange(1,nz+1)) # list of all soil layers
-        sto_colnames = ['sto_' + str(l) for l in allLayers]
-        sto_colnames.append('totalSto')
-        stoData = allData[sto_colnames]
-        allSto_init = stoData.iloc[hrsPreRain,]
-        allSto_final = stoData.iloc[-1,]
-        allSto_max = stoData.max(axis=0)
-        allSto_hourMax = stoData.idxmax(axis=0)
+        
+        # calculate storage statistics
+        # initial, max, and final stroage for all layers
 
-        # make column names
-        initCols = pd.Series([s + '_init' for s in sto_colnames])
+        # subset just storage data
+        stoData = allData[sto_colnames]
+        hrsPreRain = rpars['Cycle.prerainrec.pre.Length'] - 1 # get hour index before rain starts
+        allSto_init = stoData.iloc[hrsPreRain,] # get intial storage before rain
+        allSto_final = stoData.iloc[-1,] # get final storage at end of PF run
+        allSto_max = stoData.max(axis=0) # get maximum storage
+        allSto_hourMax = stoData.idxmax(axis=0) # get hour index of maximum storage
+
+        # make column names for new variables
+        initCols = pd.Series([s + '_init' for s in sto_colnames]) 
         finalCols = pd.Series([s + '_final' for s in sto_colnames])
         maxCols = pd.Series([s + '_max' for s in sto_colnames])
         hourMaxCols = pd.Series([s + '_hrMax' for s in sto_colnames])
-        allCols = pd.concat([initCols,finalCols,maxCols,hourMaxCols])
+        allCols = pd.concat([initCols,finalCols,maxCols,hourMaxCols]) 
 
         # pull data together and write it out for Total Storage Data
         allStoData_out = pd.concat([allSto_init,allSto_final,allSto_max,allSto_hourMax])
         allStoDataDF = pd.DataFrame(allStoData_out).transpose()
-        allStoDataDF.columns=allCols
+        allStoDataDF.columns=allCols # update Pandas DataFrame w/ column names
         fileOut = '../SingleLineOutput/SL_Sto_run' + str(n) + ".csv"
         allStoDataDF.to_csv(fileOut,index=False)
     
