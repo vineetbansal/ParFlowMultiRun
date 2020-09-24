@@ -15,8 +15,10 @@ To install ParFlowMultiRun package, open the terminal/command line and clone the
 git clone https://github.com/lmthatch/ParFlowMultiRun.git
 ```
 
-To build *ParFlowMultiRun* .... *Currently in Development*
-
+To run *ParFlowMultiRun*, navigate to the directory with your `SCInput.txt` input file and where you want your *ParFlowMultiRun* Directory.
+```
+python ParFlowMultiRunDirectory/runScripts/RunPFMultiRun.py
+```
 
 Inputs
 --------------------
