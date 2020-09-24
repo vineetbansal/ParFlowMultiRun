@@ -1,9 +1,9 @@
-RainRec_constantSub22 # Run Folder Directory, should be created at start of run.
-/home/lmthatch/Documents/PFOnly_Tests/input_files #input file directory: location of all input files, clm driver files, forcing data, subsurface data
-/home/lmthatch/Documents/PFOnly_Tests/input_files/SCInputVariables_PFOnly_ConstantSubSurf_20200916.csv  # file name of parameter file
+PFOnlyOutput	# Run Folder Directory, should be created at start of run.
+	#input file directory: location of all input files, clm driver files, forcing data, subsurface data
+Input/SCInputVariables_PFOnly_ConstantSubSurf_20200916.csv  # file name of parameter file
  	# file name with addtional irrigation parameters
-	# parflow executable directory
-10000	# total number of runs to complete
+	# Parflow Directory
+10	# total number of runs to complete
 1	# Number of Folders to Run Parflow in, controls the number of simultaneous runs and total number of files generated
 42	# Random Seed
 False	# saveAllPFData - Saves ALL Parflow 'raw' output: pressure, saturation, clm (if applicable)

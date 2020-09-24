@@ -20,6 +20,12 @@ To run *ParFlowMultiRun*, navigate to the directory with your `SCInput.txt` inpu
 python ParFlowMultiRunDirectory/runScripts/RunPFMultiRun.py
 ```
 
+**Run the example**
+navigate to the *ParFlowMultiRun* directory then examples/PFOnlyEx1/ \
+You'll see an already setup simple SCInput.txt file for *ParFlowMultiRun* and an Input folder with the example ParFlow Key Parameter File\
+Within this folder execute `python ../../runScripts/RunPFMultiRun.py`
+
+
 Inputs
 --------------------
 **File Inputs**
