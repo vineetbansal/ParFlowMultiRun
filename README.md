@@ -21,8 +21,7 @@ python ParFlowMultiRunDirectory/runScripts/RunPFMultiRun.py
 ```
 
 **Run the example** \
-navigate to the *ParFlowMultiRun* directory then examples. Copy PFOnlyEX1 to a new folder. Move to the new folder, you'll see an already setup simple SCInput.txt file for *ParFlowMultiRun* and an Input folder with the example ParFlow Key Parameter File
-Within this copied folder execute `python ParFlowMultiRunDirectory/runScripts/RunPFMultiRun.py`
+navigate to the *ParFlowMultiRun* directory then `examples/`. Copy `PFOnlyEX1/` folder to a new location and navigate to that new folder. Inside the example you'll see an already setup simple SCInput.txt file for *ParFlowMultiRun* and an Input folder with the example ParFlow Key Parameter File. Within this copied folder execute `python ParFlowMultiRunDirectory/runScripts/RunPFMultiRun.py`
 
 
 Inputs
