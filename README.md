@@ -48,6 +48,7 @@ Here we describe each parameter and what they do:
 * **Input File Directory (inputfolder):** The directory with all required Parflow Input Data (e.g. CLM driver files, slope files etc.)
 * **ParFlow Run Parameter Files (paramfile):** Parameter file to generate ParFlow parameter from
 * **Irrigation Parameter File (irrfile):** Irrigation Parameters File, not required, leave empty if not needed
+* **Parflow Exectuable Directory (parfDir):** Parflow execuable directory, if blank assumes $PARFLOW_DIR/bin/parflow
 * **Number of Simulations to Complete (n):** Total number of random parameter sets to generate and runs
 * **Number of Run Folders (runfold):** Number of Folders to Run Parflow in, controls the number of simultaneous runs and total number of files generated
 * **Random Seed (rseed):** Random Seed for parameter generation
@@ -67,6 +68,7 @@ RainRec_constantSub22   # Run Folder Directory, should be created at start of ru
 /home/lmthatch/Documents/PFOnly_Tests/input_files   #input file directory: location of all input files, clm driver files, forcing data, subsurface data
 /home/lmthatch/Documents/PFOnly_Tests/input_files/SCInputVariables_PFOnly_ConstantSubSurf_20200916.csv  # file name of parameter file
           # file name with addtional irrigation parameters
+          # parflow executable directory
 10000     # total number of runs to complete
 1         # Number of Folders to Run Parflow in, controls the number of simultaneous runs and total number of files generated
 42        # Random Seed

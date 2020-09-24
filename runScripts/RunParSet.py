@@ -230,6 +230,13 @@ def runSingleFolder(runset,parDict):
     # create file to save run times for each parflow run
     outfn = '../RunTimeData/runTimes_' + str(runset) + '.csv'
 
+    # set parflow run command
+    # check if parflow director is set
+    if parDict['parfDir'] != '':
+        parfcommand = parDict + ' test  > parflow.test.log'
+    else:
+        parfcommand = "$PARFLOW_DIR/bin/parflow test  > parflow.test.log"
+
     # loop through all parameter sets
     for currset in range(nsets):
         print('Running Set ' + str(currset))
@@ -243,7 +250,7 @@ def runSingleFolder(runset,parDict):
         # run your parflow
         try: 
             start = time.time()
-            os.system("$PARFLOW_DIR/bin/parflow test  > parflow.test.log")
+            os.system(parfcommand) # calls parflow run
             end = time.time()
 
             # save runtime
