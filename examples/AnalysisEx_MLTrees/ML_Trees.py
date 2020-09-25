@@ -20,8 +20,7 @@ from sklearn.metrics import accuracy_score
 #%%
 
 # import data
-fn = '/home/lmthatch/Documents/PFOnly_Tests/RainRec_constantSub22/MergedTotRec_wRunPar.csv'
-
+fn = 'Input/MergedTotRec_wRunPar.csv'
 inData = pd.read_csv(fn)
 
 
@@ -278,5 +277,110 @@ plt.show()
 for value,group in X_test.groupby(['GW']):
         plt.scatter(group['ytest'],group['ypred'],label=value,alpha=0.2)
 plt.legend()
+plt.show()
+
+#%% [markdown]
+
+# Reanalyze for well fitting data
+
+# %% [markdown]
+
+# Reanalyze and throw out variables with bad R2 values
+r2limit = 0.95 # minimum rsquared fit parameter
+
+goodData = inData[inData['Bous_Rsq'] > r2limit]
+
+print(str(len(goodData)) + ' Good Data Points out of '+str(len(inData)) + ' total data points')
+
+# start by reconfiguring the indepent/dependent varaiables and train/test splitting them
+# subset 'independent' variables
+colSubset = ['ComputationalGrid.NZ','ComputationalGrid.DX','Patch.x-lower.BCPressure.alltime.Value','Patch.z-upper.BCPressure.rain.Value']
+newColNames= ['NZ','DX','GW','RainRate']
+colDict = dict(zip(colSubset,newColNames))
+X = goodData[colSubset]
+X = X.rename(columns=colDict)
+
+# subset DX/DY
+y = goodData['Bous_a'].to_numpy()
+
+# split data to training and testing set *note can't stratify because y isn't a categorical variable anymore
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.3,random_state=SEED)
+
+# %%
+#%% [markdown]
+
+# ## let's train a simpler tree for comparison
+
+#%% 
+
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import mean_squared_error as MSE
+
+dtr = DecisionTreeRegressor(max_depth=1,random_state=SEED)
+dtr.fit(X_train,y_train)
+y_pred = dtr.predict(X_test)
+print('RMSE of the single layer decision tree: %.3f' % MSE(y_test,y_pred)**0.5)
+dtr2 = DecisionTreeRegressor(max_depth=2,random_state=SEED)
+dtr2.fit(X_train,y_train)
+y_pred2 = dtr2.predict(X_test)
+print('RMSE of the 2 layer decision tree: %.3f' % MSE(y_test,y_pred2)**0.5)
+
+#%% [markdown]
+
+# so adding a layer has a small performance boost
+
+# ## Trying Random Forest
+
+# %%
+
+from sklearn.ensemble import RandomForestRegressor
+
+
+# random forest
+rf = RandomForestRegressor(n_estimators=400,random_state=SEED,min_samples_leaf=4)
+rf.fit(X_train,y_train)
+y_pred_rf = rf.predict(X_test)
+print('RMSE of the random forest: %.3f' % MSE(y_test,y_pred_rf)**0.5)
+
+importances_rf = pd.Series(rf.feature_importances_, index=X.columns)
+sorted_importances_rf = importances_rf.sort_values()
+sorted_importances_rf.plot(kind='barh',color='lightgreen')
+plt.title('Random Forest Feature Importance - Predicting Bouss a')
+plt.show()
+
+#%%
+# add to dataframe to plot
+X_test['ypred'] = y_pred_rf
+X_test['ytest'] = y_test
+
+for value,group in X_test.groupby(['NZ']):
+        plt.scatter(group['ytest'],group['ypred'],label=value,alpha=0.2)
+
+#plt.xlabel("Leprechauns")
+#plt.ylabel('Bous a Predicted')
+plt.legend()
+plt.show()
+
+#%%
+# add to dataframe to plot
+X_test['ypred'] = y_pred_rf
+X_test['ytest'] = y_test
+
+for value,group in X_test.groupby(['DX']):
+        plt.scatter(group['ytest'],group['ypred'],label=value,alpha=0.2)
+
+#plt.xlabel("Leprechauns")
+#plt.ylabel('Bous a Predicted')
+plt.legend()
+plt.show()
+
+
+# %%
+
+plt.scatter(X_test['ytest'],X_test['ypred'],color=X_test['RainRate'],alpha=0.2)
+
+#plt.xlabel("Leprechauns")
+#plt.ylabel('Bous a Predicted')
+#plt.legend()
 plt.show()
 # %%

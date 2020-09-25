@@ -70,6 +70,7 @@ Post-Processing / File output controls:
 ```
 RainRec_constantSub22   # Run Folder Directory, should be created at start of run.
 /home/lmthatch/Documents/PFOnly_Tests/input_files   #input file directory: location of all input files, clm driver files, forcing data, subsurface data
+          # folder directory with clm files (if applicable)	
 /home/lmthatch/Documents/PFOnly_Tests/input_files/SCInputVariables_PFOnly_ConstantSubSurf_20200916.csv  # file name of parameter file
           # file name with addtional irrigation parameters
           # parflow executable directory

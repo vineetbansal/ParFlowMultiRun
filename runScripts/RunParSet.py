@@ -129,10 +129,6 @@ def createRunDir(n): #(clmDir,currTestDir) input parameters ignored for now, ass
     runDir = 'test' + str(n)
     os.system('mkdir ' + runDir)
 
-    # copy over clm driver files
-    os.system("cp ../clm_input/drv_clmin.dat " + runDir)
-    os.system("cp ../clm_input/drv_vegm.dat " + runDir)
-    os.system("cp ../clm_input/drv_vegp.dat " + runDir)
     return runDir
 
 def getInputRow(n,paramFile): # gets the input rows needed.
@@ -224,6 +220,14 @@ def runSingleFolder(runset,parDict):
     allPar = getAllInputRows(parameterFN)
     nsets = len(allPar.index) # number of parameter sets in file
 
+    # copy CLM files as needed
+    # copy over clm driver files
+    print()
+    if parDict['clmDir'] != '':
+        os.system("cp ../" + parDict['clmDir'] + "/drv_clmin.dat " + newRunDir)
+        os.system("cp ../" + parDict['clmDir'] + "/drv_vegm.dat " + newRunDir)
+        os.system("cp ../" + parDict['clmDir'] + "/drv_vegp.dat " + newRunDir)
+
     # move into new run folder
     os.chdir(newRunDir)
 
@@ -243,19 +247,25 @@ def runSingleFolder(runset,parDict):
 
         # get current parameter set
         runParameters = allPar.iloc[currset]
+        testn = runParameters['n']
 
         # create your pfidb file
         pfidbGen(runParameters)
 
         # run your parflow
         try: 
+            print('Running Parflow')
             start = time.time()
             os.system(parfcommand) # calls parflow run
             end = time.time()
+            print('ParFlow Run Complete')
+
+            # save log files for troubleshooting
+            os.system('cp parflow.test.log ../'+str(testn) + '_parflow.test.log')
+            os.system('cp test.out.kinsol.log ../'+str(testn) + '_test.out.kinsol.log')
 
             # save runtime
             totaltime = end - start
-            testn = runParameters['n']
             with open(outfn,'a') as f:
                 f.write(str(testn) + "," + str(totaltime))
                 f.write("\n")
@@ -272,7 +282,7 @@ def runSingleFolder(runset,parDict):
 
     # delete the directory when all runs have been completed
     os.chdir('../')
-    os.system('rm -r ' + newRunDir)
+    #os.system('rm -r ' + newRunDir)
 
 def main():
     runset = int(sys.argv[1])

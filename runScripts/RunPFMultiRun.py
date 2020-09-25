@@ -14,8 +14,9 @@ def readInputFile():
     '''
 
     fn = 'SCInput.txt' # input file (this file name should not change and always be in folder where ParFlowMultiRun is called)
-    keys=['runFolder','inputDir','parFN','irrFN','parfDir','totaln','nfold','randomseed','saveAllPFData','saveTotStoSL','saveRecCurve_Total', 'saveRecCurve_Layers', 'saveCLMSL', 'saveStoStats']
+    keys=['runFolder','inputDir','clmDir','parFN','irrFN','parfDir','totaln','nfold','randomseed','saveAllPFData','saveTotStoSL','saveRecCurve_Total', 'saveRecCurve_Layers', 'saveCLMSL', 'saveStoStats']
     values = []
+
 
     # get key values from inputfile
     with open(fn,'r') as f:
@@ -52,8 +53,11 @@ def createNewRun():
     inputData = readInputFile()
     #print(inputData)
 
+
+    print(inputData)
+
     # generate run simulation parameters
-    genParSet(inputData['totaln'],inputData['parFN'],inputData['runFolder'],inputData['nfold'],inputData['randomseed'])
+    genParSet(inputData)
     
     # move into run directory
     os.chdir(inputData['runFolder'])

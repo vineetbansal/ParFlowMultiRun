@@ -1,31 +1,44 @@
 
 # Converted from 'SC_GenerateParameterSets.R'
 
-def genParSet(n,inputFile,testDir,numFold,randseed):
+def genParSet(inputData):
    '''
    Generates parameter sets based on Input File
    Files with each of the parameter sets are written into the test directory (testDir)
 
    Args:
-      n: number of parameter sets to generate
-      inputFile: file name w/ parflow parameter values
-      testDir: folder where ParFlow MultiRun will run
-      numFold: number of folders ParFlow MultiRun Running in (number of files to split parameters in)
+      InputData (dict): dictionary with ParFlowMultiRun keys, including
+         n: number of parameter sets to generate
+         inputFile: file name w/ parflow parameter values
+         testDir: folder where ParFlow MultiRun will run
+         numFold: number of folders ParFlow MultiRun Running in (number of files to split parameters in)
    Returns:
       none
 
    '''
+
    import pandas as pd
    import numpy as np
    import random
    import sys
    import os
 
+   print('Inside genParSet Function')
+   # needed dictionary keys
+   n=inputData['totaln']
+   inputFile=inputData['parFN']
+   testDir=inputData['runFolder']
+   numFold=inputData['nfold']
+   randseed=inputData['randomseed']
+
+   print('got all my data sets')
+
    # create parameter data sets
    parDataSets={'n': list(range(0,n))}
    parDF=pd.DataFrame(parDataSets)
 
    # load csv file of keys and values
+   print('Name of input file: ' + inputFile)
    inputVarDF=pd.read_csv(inputFile, delimiter=',')
    inputVarDF.columns = ['KeyName', 'SCValue', 'inputType', 'set', 'MinRange', 'MaxRange']
 
@@ -154,12 +167,13 @@ def genParSet(n,inputFile,testDir,numFold,randseed):
    os.system('mkdir ' + testDir + '/FullRunData')
    os.system('mkdir ' + testDir + '/SingleLineOutput')
    os.system('mkdir ' + testDir + '/RunTimeData')
-   #os.system('mkdir ' + testDir + '/TotalStorageData')
 
-   try:
-      os.system('cp -r clm_input/ ' + testDir)
-   except:
-      print('No CLM Inputs')
+   # check if we need CLM files, copy if necessary
+   if parDF['Solver.LSM'].iloc[0] == 'CLM':
+      try:
+         os.system('cp -r clm_input/ ' + testDir)
+      except:
+         print('Missing CLM Files')
 
    # write out parameter data set variables to number of files
    numFold = int(numFold)
@@ -181,13 +195,12 @@ def genParSet(n,inputFile,testDir,numFold,randseed):
          parDF_sub.to_csv(outfn,index=False)
 
 def main():
-    import sys
-    n = int(sys.argv[1])
-    inputFile = sys.argv[2]
-    testDir =sys.argv[3]
-    nfiles = sys.argv[4]
-    rs = sys.argv[5]
-    genParSet(n,inputFile,testDir,nfiles,rs)
+   import sys
+
+   keyNames = ['totaln','parFN','runFolder','nfold','randomseed']
+   keyValues = [int(sys.argv[1]),sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5]]
+
+   genParSet(zip(keyNames,keyValues))
 
 if __name__ == "__main__":
 
