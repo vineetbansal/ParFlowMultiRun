@@ -167,6 +167,7 @@ def genParSet(inputData):
    os.system('mkdir ' + testDir + '/FullRunData')
    os.system('mkdir ' + testDir + '/SingleLineOutput')
    os.system('mkdir ' + testDir + '/RunTimeData')
+   os.system('mkdir ' + testDir + '/Errors')
 
    # check if we need CLM files, copy if necessary
    if parDF['Solver.LSM'].iloc[0] == 'CLM':

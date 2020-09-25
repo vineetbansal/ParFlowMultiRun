@@ -243,6 +243,8 @@ def runSingleFolder(runset,parDict):
 
     # loop through all parameter sets
     for currset in range(nsets):
+        runProblem = False
+
         print('Running Set ' + str(currset))
 
         # get current parameter set
@@ -260,23 +262,38 @@ def runSingleFolder(runset,parDict):
             end = time.time()
             print('ParFlow Run Complete')
 
-            # save log files for troubleshooting
-            os.system('cp parflow.test.log ../'+str(testn) + '_parflow.test.log')
-            os.system('cp test.out.kinsol.log ../'+str(testn) + '_test.out.kinsol.log')
+            # add an error check
+            # open the parflow.test.log file
+            with open('parflow.test.log', 'r') as f:
+                for i, line in enumerate(f, start=1):
+                    #print('{} = {}'.format(i, line.strip()))
+                    if 'Error' in line:
+                        print('FOUND ERROR')
 
-            # save runtime
-            totaltime = end - start
-            with open(outfn,'a') as f:
-                f.write(str(testn) + "," + str(totaltime))
-                f.write("\n")
-
-            try:
-                processDataSC(runParameters,parDict)
-            except:
-                print('parflow processing failed')
-        
+                        # save log files for troubleshooting
+                        os.system('cp parflow.test.log ../Errors/'+str(testn) + '_parflow.test.log')
+                        os.system('cp test.out.kinsol.log ../Errors/'+str(testn) + '_test.out.kinsol.log')
+                        os.system('cp test.pfidb ../Errors/'+str(testn) + '_test.pfidb')
+                        
+                        runProblem = True # need to get out of this for loop to call on continue
         except:
-            print('parflow failed and/or parflow processing failed')
+            print('parflow run failed')
+            
+        if runProblem:
+            os.system('rm test.pfidb')
+            continue
+
+        # save runtime
+        totaltime = end - start
+        with open(outfn,'a') as f:
+            f.write(str(testn) + "," + str(totaltime))
+            f.write("\n")
+
+        try:
+            print('processing data')
+            processDataSC(runParameters,parDict)
+        except:
+            print('parflow processing failed')
         
         os.system('rm test.pfidb')
 

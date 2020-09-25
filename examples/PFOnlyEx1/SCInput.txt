@@ -1,5 +1,6 @@
-PFOnlyOutput	# Run Folder Directory, should be created at start of run.
+PFOnlyOutput1	# Run Folder Directory, should be created at start of run.
 	#input file directory: location of all input files, clm driver files, forcing data, subsurface data
+	# CLM Input File
 Input/SCInputVariables_PFOnly_ConstantSubSurf_20200916.csv  # file name of parameter file
  	# file name with addtional irrigation parameters
 	# Parflow Directory

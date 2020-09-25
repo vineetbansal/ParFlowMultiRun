@@ -98,7 +98,7 @@ Solver.Nonlinear.DerivativeEpsilon,1E-12,double,Constant,NA,NA
 Solver.Nonlinear.EtaChoice,Walker1,string,Constant,NA,NA
 Solver.Nonlinear.EtaValue,0.01,double,Constant,NA,NA
 Solver.Nonlinear.Globalization,LineSearch,string,Constant,NA,NA
-Solver.Nonlinear.MaxIter,100,integer,Constant,NA,NA
+Solver.Nonlinear.MaxIter,1000,integer,Constant,NA,NA
 Solver.Nonlinear.ResidualTol,1E-09,double,Constant,NA,NA
 Solver.Nonlinear.StepTol,1E-20,double,Constant,NA,NA
 Solver.Nonlinear.UseJacobian,FALSE,string,Constant,NA,NA
