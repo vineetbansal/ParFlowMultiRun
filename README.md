@@ -50,6 +50,7 @@ template shown here.
 Here we describe each parameter and what they do:
 * **ParFlowMultiRun Run Directory (runfolder):** Working Directory for ParflowMultiRun and all run output and postprocessing
 * **Input File Directory (inputfolder):** The directory with all required Parflow Input Data (e.g. CLM driver files, slope files etc.)
+* **CLM Input FIle Directory (clmDir):** Directory with and needed CLM input files (e.g. drv_clm.dat, drv_veg files)
 * **ParFlow Run Parameter Files (paramfile):** Parameter file to generate ParFlow parameter from
 * **Irrigation Parameter File (irrfile):** Irrigation Parameters File, not required, leave empty if not needed
 * **Parflow Exectuable Directory (parfDir):** Parflow execuable directory, if blank assumes $PARFLOW_DIR/bin/parflow
