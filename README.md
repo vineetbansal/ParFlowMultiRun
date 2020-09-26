@@ -1,7 +1,7 @@
 ParFlowMultiRun
 =======
 
-*ParFlowMultiRun* is a python package to generate and run a suite of ParFlow simulations useful for sensitivity testing. Currently Parflow Multi Run is developed for Single Column models, but hillslope and basin scale are in Development
+*ParFlowMultiRun* is a python package to generate and run a suite of ParFlow simulations useful for sensitivity testing. Currently Parflow Multi Run is developed for Single Column models, but hillslope and basin scale are in development
 
 #### Development/Contact
 + Lauren Thatch <lmthatch@mines.edu>
@@ -29,15 +29,31 @@ Inputs
 **File Inputs**
 1. **ParflowMultiRun driver file (required):** The main *ParflowMultiRun* input file that includes information on ParFlow input parameters, number of ParFlow simulations, and ParFlow post processing settings. This file must be named `SCInput.txt`.  Refer to the *Settings* section for a complete description of this file.
 2. **ParFlow parameter input (required):** Contains ParFlow simulation key values. Values are set as either Constant, Variable, or Calculate. Variable values must include either a min/max range or a list of possible values.
-   * *Constant* - These ParFlow keys will be constant for all ParFlow simulations in the ParFlowMultiRun
-   * *Variable* - These ParFlow keys will vary for each simulation.
-   * *Calculate* - These Parflow keys are dependent on variable parflow key values and will be calculated from these values.
 3. **ParFlow Irrigation parameter input (optional):** Input file with ParFlow irrigation Parameters
 4. **ParFlow and ParFlow-CLM Input Files (optional):** Parflow Run Input Files (e.g. indicator file, slope files, mannings files, clm driver files etc.)
 
+Parflow Parameter Input File
+--------------------
+ParFlow Parameter Key Values are set by the ParFlow parameter input file. The name of the ParFlow Parameter Input file must be specified in the `SCInput.txt` file, see *Settings* section below. The ParFlow Parameter Input file specifies the ParFlow Key Names and Values. It allows for variables to be set as constant, variable, or calculate. The ParFlowMultiRun package will use this file to generate a random set of 'n' parameters (also specified in the `SCInput.txt` file).
+
+The ParFlow Parameter Input file must be saved as a `.csv` file. There should be one line for each ParFlow input key and the file must contain the following columns:
+
+* **Parflow Key Name (KeyName):** *Parflow* model input key name
+* **Parflow Key Value (SC Value):** Value for the *Parflow* key
+* **Parflow Key Value Type (Input Type):** Variable value type:
+  - *integer (int)*
+  - *double*
+  - *string*
+* **Variable Type (set):** Type of input variable: Constant, Variable, or Calculate.
+  - *Constant:* ParFlow key values that will be constant for all ParFlow simulations in the ParFlowMultiRun.
+  - *Variable:* ParFlow key values that will vary for all Parflow Simulatons.
+  - *Calculate:* These Parflow keys are dependent on variable parflow key values and will be calculated from these values.
+* **Minimum Range (MinRange):** *Variable Keys Only,* Sets the minimum range for the variable parameter. Can also be a space seperated string of possible variables.
+* **Maximum Range (MaxRange):** *Variable Keys Only,* Sets the maximum range for the variable parameter. If MinRange is a list of possible key values, Maximum Range should be set to 'NA.'
+
 Outputs
 --------------------
-***Single Line Files***
+**Single Line Files**
 
 
 Settings
@@ -71,7 +87,7 @@ Post-Processing / File output controls:
 ```
 RainRec_constantSub22   # Run Folder Directory, should be created at start of run.
 /home/lmthatch/Documents/PFOnly_Tests/input_files   #input file directory: location of all input files, clm driver files, forcing data, subsurface data
-          # folder directory with clm files (if applicable)	
+          # folder directory with clm files (if applicable)
 /home/lmthatch/Documents/PFOnly_Tests/input_files/SCInputVariables_PFOnly_ConstantSubSurf_20200916.csv  # file name of parameter file
           # file name with addtional irrigation parameters
           # parflow executable directory
