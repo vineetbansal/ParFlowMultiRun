@@ -67,9 +67,39 @@ def genParSet(inputData):
       for name in varIdx['KeyName']:
          parDF[name]=varValues
 
+   # variable 'sets' 
+   setVars = inputVarDF[inputVarDF['set'] == 'Set']
+
+   # create all combinations of these variables and the variable sets
+   setVarNames = np.unique(setVars['SCValue'])
+   print('SetVariables: ' + setVarNames)
+   
+   for var in setVarNames:
+      print(var)
+      varIdx = setVars[setVars['SCValue']==var]
+      varPos = varIdx['MinRange'].iat[0].split(sep=" ")
+
+      firstVal = True
+      for val in varPos:
+         valDF = parDF
+         
+         for name in varIdx['KeyName']:
+            valDF[name] = val
+
+         if firstVal:
+            allValDF = valDF
+            firstVal = False
+         else:
+            allValDF = allValDF.append(valDF,ignore_index=True)
+
+      parDF = allValDF   
+
+
    # add constant variables, these won't need to be changed, can be read straight in
    constantVars = inputVarDF[inputVarDF['set'] == 'Constant']
    constantKeys = constantVars['KeyName']
+
+   n = parDF.shape[0]
 
    # add them to data frame with variable parameters
    for key in constantKeys:
