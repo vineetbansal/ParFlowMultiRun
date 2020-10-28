@@ -68,7 +68,7 @@ def createNewRun():
         f.write(str(inputData))
 
     # enter parallel code here VVVVVVV
-    runSingleFolder(1, inputData) 
+    #runSingleFolder(1, inputData) 
 
 def main():
     createNewRun()

@@ -279,9 +279,9 @@ def runSingleFolder(runset,parDict):
         except:
             print('parflow run failed')
             
-        if runProblem:
-            os.system('rm test.pfidb')
-            continue
+        #if runProblem:
+        #    os.system('rm test.pfidb')
+        #    continue
 
         # save runtime
         totaltime = end - start
@@ -291,11 +291,19 @@ def runSingleFolder(runset,parDict):
 
         try:
             print('processing data')
-            processDataSC(runParameters,parDict)
+
+            if runProblem: # if there's an error, just save all the orignal PF data, don't attempt other processing functions
+                problemDict = parDict.copy()
+                problemDict.update({'saveAllPFData':True,'saveTotStoSL':False,'saveRecCurve_Total':False, 'saveRecCurve_Layers':False, 'saveCLMSL':False, 'saveStoStats':False})
+                processDataSC(runParameters,problemDict)
+            else:
+                processDataSC(runParameters,parDict)
+
         except:
             print('parflow processing failed')
         
         os.system('rm test.pfidb')
+        os.system('rm *pfb')
 
     # delete the directory when all runs have been completed
     os.chdir('../')

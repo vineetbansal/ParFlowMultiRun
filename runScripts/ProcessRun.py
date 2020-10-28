@@ -31,12 +31,15 @@ def pullTimeSeries(runLen,nz,nclm=0,pullVars=[('sat','test.out.satur'),('press',
         Pandas Dataframe with all Parflow output data
     '''
 
+    print('Pulling Time Series data')
+
     # list of all soil layers (based on nz)
     allLayers = list(np.arange(1,nz+1)) 
 
     # pull data for all variables
     firstVar = True
     for var, varpre in pullVars:
+        print('current variable: ' + var)
 
         # create column names (w/ more complexity for CLM variable)
         if var == 'clm':
@@ -83,7 +86,18 @@ def pullSingleVar(prefix,runLen,colnames,post='pfb'):
         
         # get hourly data
         fin = prefix + ".{:05d}.".format(k) + post # set file name
-        datINpf = pfio.pfread(fin) # read in parflow file
+        print('pulling: ',fin)
+        
+        incompleteRun = False
+        try:
+            datINpf = pfio.pfread(fin) # read in parflow file
+        except:
+            print('PROBLEM PULLING FILE')
+            incompleteRun = True
+
+        if incompleteRun:
+            break
+
         datDF = pd.DataFrame(np.transpose(datINpf[:,:,0]),columns=colnames) 
 
         # merge hourly data into single dataframe

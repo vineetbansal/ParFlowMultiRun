@@ -81,13 +81,14 @@ def genParSet(inputData):
 
       firstVal = True
       for val in varPos:
-         valDF = parDF
+         print(val)
+         valDF = parDF.copy()
          
          for name in varIdx['KeyName']:
             valDF[name] = val
 
          if firstVal:
-            allValDF = valDF
+            allValDF = valDF.copy()
             firstVal = False
          else:
             allValDF = allValDF.append(valDF,ignore_index=True)
@@ -208,6 +209,8 @@ def genParSet(inputData):
 
    # write out parameter data set variables to number of files
    numFold = int(numFold)
+
+   parDF['n'] = list(range(0,parDF.shape[0])) # n parameter gets messed up if the are 'set' variables, update here
 
    if numFold == 1:
       outfn = testDir + '/ParameterSets_AutoGenPY_0.csv'
