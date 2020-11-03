@@ -36,7 +36,7 @@ jobs:
           (cd hypre-2.11.2/src && ./configure --prefix=${HYPRE_DIR} --without-MPI && make install)
 
       - name: Install Parflow
-        run:
+        run: |
           wget https://github.com/parflow/parflow/archive/v3.7.0.tar.gz -O parflow.tar.gz
           tar xvzf parflow.tar.gz
           (cd parflow-3.7.0 && mkdir build && cd build && cmake .. -DCMAKE_INSTALL_PREFIX=$PARFLOW_DIR -DHYPRE_ROOT=$HYPRE_DIR -DPARFLOW_AMPS_LAYER=mpi1 -DPARFLOW_AMPS_SEQUENTIAL_IO=true -DPARFLOW_ENABLE_TIMING=true -DPARFLOW_HAVE_CLM=ON)
