@@ -33,7 +33,7 @@ jobs:
         run: |
           wget https://computing.llnl.gov/projects/hypre-scalable-linear-solvers-multigrid-methods/download/hypre-2.11.2.tar.gz -O hypre.tar.gz
           tar xvzf hypre.tar.gz
-          (cd hypre-2.11.2 && ./configure --prefix=${HYPRE_DIR} --without-MPI && make install)
+          (cd hypre-2.11.2/src && ./configure --prefix=${HYPRE_DIR} --without-MPI && make install)
 
       - name: Install Parflow
         run:
