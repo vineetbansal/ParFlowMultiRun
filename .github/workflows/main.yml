@@ -27,7 +27,7 @@ jobs:
       - name: Install Ubuntu dependencies
         run: |
           sudo apt-get -y install gcc build-essential cmake g++ gdc gfortran tcl-dev tk-dev git
-          sudo apt-get -y install openmpi-bin libopenmpi-dev
+          sudo apt-get -y install openmpi-bin
 
       - name: Install HYPRE
         run: |
