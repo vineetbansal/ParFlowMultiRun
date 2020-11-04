@@ -12,7 +12,7 @@ def test_output_pfb_files():
     This test exists while code refactoring is in progress and will eventually be replaced by more fine-grained tests.
     """
     output_folder = 'test_folder'
-    generate([100, '../input_files/SCInputVariables_PFOnly_20200825.csv', output_folder, 10, 123])
+    generate([100, 'input_files/SCInputVariables_PFOnly_20200825.csv', output_folder, 10, 123])
 
     # TODO: The run function changes the current folder on us!
     # Till this is fixed, we explicitly save the current working folder and cd back to it later
